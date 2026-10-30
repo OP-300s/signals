@@ -1,19 +1,20 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#14181f">
-<title>My Signals</title>
+<title>My Signals for Binance</title>
 <style>
 :root{--bg:#f4f5f2;--cd:#fff;--tx:#1b2430;--mu:#667180;--bd:#dde1e5;--g:#1f8a5b;--r:#c8433a;--y:#b7791f}
-@media(prefers-color-scheme:dark){:root{--bg:#14181f;--cd:#1c222b;--tx:#e9edf2;--mu:#93a0b0;--bd:#2b3340;--g:#3fbf86;--r:#ef6a60;--y:#e0a542}}
+:root[data-theme=dark]{--bg:#14181f;--cd:#1c222b;--tx:#e9edf2;--mu:#93a0b0;--bd:#2b3340;--g:#3fbf86;--r:#ef6a60;--y:#e0a542}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,Roboto,sans-serif;padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom));max-width:560px;margin-inline:auto}
-h1{font-size:20px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
-button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);border-radius:10px;padding:8px 14px}
-.tabs{display:flex;gap:8px;margin-bottom:10px}.tabs button{flex:1}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.big{font-size:34px;font-weight:800;letter-spacing:-1px;line-height:1.1}
+.hb{display:flex;flex-direction:column;gap:6px}.hb button{padding:5px 10px;font-size:13px}
+button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);border-radius:10px;padding:8px 12px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.tabs button{flex:1 1 28%}
 .tabs .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
-.sm button{padding:5px 10px;flex:none}
-.card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:12px 0}
+.sm button{padding:5px 10px;flex:1 1 20%}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:12px 0}
 .mu{color:var(--mu)}.small{font-size:13px}
 .sig{font-size:64px;font-weight:800;letter-spacing:-2px;line-height:1.05;margin:6px 0}
 .g{color:var(--g)}.r{color:var(--r)}.y{color:var(--y)}
@@ -23,56 +24,54 @@ button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);bor
 .lv div{border-top:1px solid var(--bd);padding-top:6px;font-weight:600}.lv span{display:block;font-weight:400;color:var(--mu);font-size:13px}
 .rs{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--bd)}.rs:first-of-type{margin-top:8px}
 .ch{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid currentColor;display:grid;place-items:center;font-weight:700;font-size:14px}
-canvas{width:100%;height:80px;display:block}
+canvas{width:100%;height:260px;display:block}
 summary{font-weight:600}
-.hb{display:flex;gap:8px}.hb button{padding:6px 12px;font-size:14px}
-dialog{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:14px;width:min(92vw,420px)}
-dialog label{display:block;margin:10px 0;font-size:14px;color:var(--mu)}
-dialog input{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.ck{display:flex;gap:10px;padding:8px 0;align-items:flex-start}.ck input{width:22px;height:22px;flex:none}
+#lg span{margin-right:10px;white-space:nowrap}
 </style></head><body>
-<h1>My Signals <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
+<div class="top"><div class="big">For Binance</div><div class="hb"><button id="rf">Refresh</button><button id="th">Dark mode</button></div></div>
 <div class="tabs" id="mk"></div><div class="tabs sm" id="tfs"></div>
+<details class="card"><summary>Strategies (all on by default)</summary><div id="sl"></div></details>
 <div id="out"></div>
 <p id="st" class="mu small"></p>
-<dialog id="dl"><b>Your Exness setup</b>
-<label>Account balance (USD)<input id="bal" type="number" inputmode="decimal"></label>
-<label>Risk per trade (%)<input id="risk" type="number" inputmode="decimal"></label>
-<label>BTCUSD units per 1.00 lot<input id="c1" type="number" inputmode="decimal"></label>
-<label>ETHUSD units per 1.00 lot<input id="c2" type="number" inputmode="decimal"></label>
-<label>XAUUSD ounces per 1.00 lot<input id="c3" type="number" inputmode="decimal"></label>
-<label>Twelve Data key for true gold prices (optional)<input id="tdk"></label>
-<p class="mu small">Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
-<button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></dialog>
 <p class="mu small">Not financial advice. These are rule-based signals and they can be wrong. Never risk money you cannot afford to lose.</p>
 <script>
 const $=s=>document.querySelector(s),ls=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch(e){return null}};
 const MK={
-BTC:{n:'Bitcoin',ex:'BTCUSD',ct:1,sym:'BTCUSDT',cb:'BTC-USD',strat:'Momentum trend-follower',max:6,thr:3,q:.1,
-d:'Bitcoin trends hard once it moves, so this bot rides momentum. It scores four things: trend direction (EMA 20 and 50), MACD momentum, RSI strength and volume confirmation. It says buy or sell only when most of them agree.'},
-ETH:{n:'Ethereum',ex:'ETHUSD',ct:1,sym:'ETHUSDT',cb:'ETH-USD',strat:'Breakout plus strength versus Bitcoin',max:8,thr:4,q:.12,
-d:'Ethereum often explodes out of quiet ranges and follows Bitcoin. This bot scores Bollinger band breakouts, MACD, trend, how ETH is doing against BTC, and an RSI extreme guard.'},
-XAU:{n:'Gold',ex:'XAUUSD',ct:100,sym:'PAXGUSDT',td:'XAU/USD',strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.04,
-d:'Gold moves in ranges more than crypto, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic). A 50/200 EMA trend filter weakens signals that fight the main trend.'}};
-let cur='BTC',tf='15m',tok=0,gErr='';
+BTC:{n:'Bitcoin',sym:'BTCUSDT',kind:'BTC',strat:'Momentum trend-follower',max:6,thr:3,q:.1,d:'Bitcoin trends hard once it moves, so the core scoring rides momentum: trend (EMA 20 and 50), MACD, RSI and volume.'},
+ETH:{n:'Ethereum',sym:'ETHUSDT',kind:'ETH',strat:'Breakout plus strength versus Bitcoin',max:8,thr:4,q:.12,d:'Ethereum often breaks out of quiet ranges and follows Bitcoin, so the core scoring uses Bollinger breakouts, MACD, trend, ETH against BTC and an RSI extreme guard.'},
+SOL:{n:'Solana',sym:'SOLUSDT',kind:'BTC',strat:'Fast momentum',max:6,thr:3,q:.15,d:'Solana moves fast and in streaks, so the core scoring uses momentum (trend, MACD, RSI, volume) with a higher minimum volatility before it will give a signal.'},
+XAU:{n:'Gold',sym:'PAXGUSDT',kind:'XAU',strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.04,note:'Gold is shown through PAXG, a gold-backed token on Binance, so it can differ slightly from spot XAU/USD.',d:'Gold moves in ranges more than crypto, so the core scoring buys stretched dips and sells stretched rallies (RSI, Bollinger, Stochastic), weakened when fighting the 50/200 EMA trend.'},
+EUR:{n:'EUR/USD',sym:'EURUSDT',kind:'XAU',strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.02,note:'EUR/USD is shown as EUR/USDT on Binance.',d:'EUR/USD drifts in ranges, so the core scoring buys stretched dips and sells stretched rallies (RSI, Bollinger, Stochastic), weakened when fighting the 50/200 EMA trend.'}};
+const SG=[['core','Core indicators','Different for each market: EMA, MACD, RSI, Bollinger, volume'],['sr','Support & resistance','Price levels that stopped price several times'],['sd','Supply & demand','Zones where price was pushed hard before'],['lq','Liquidity sweep','Price grabs stop orders past a swing high or low, then reverses'],['cp','Candlestick patterns','Engulfing and pin bars, counted only at support or resistance']];
+let cur='BTC',tf='15m',tok=0,last=null,g0=ls('sg'),ST=g0===null?SG.map(a=>a[0]):g0.split(',').filter(Boolean);
 
-const ema=(a,n)=>{const k=2/(n+1);let p=a[0];return a.map((v,i)=>i?(p=v*k+p*(1-k)):v)};
+const p=n=>{const d=Math.abs(n)<10?5:2;return n.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})};
+const ema=(a,n)=>{const k=2/(n+1);let q=a[0];return a.map((v,i)=>i?(q=v*k+q*(1-k)):v)};
 const sma=(a,n,i)=>{let s=0;for(let j=i-n+1;j<=i;j++)s+=a[j];return s/n};
 const sd=(a,n,i)=>{const m=sma(a,n,i);let s=0;for(let j=i-n+1;j<=i;j++)s+=(a[j]-m)**2;return Math.sqrt(s/n)};
 function rsi(c,n=14){const r=Array(c.length).fill(50);let g=0,l=0;for(let i=1;i<c.length;i++){const d=c[i]-c[i-1],u=Math.max(d,0),w=Math.max(-d,0);if(i<=n){g+=u/n;l+=w/n}else{g=(g*(n-1)+u)/n;l=(l*(n-1)+w)/n}if(i>=n)r[i]=l?100-100/(1+g/l):100}return r}
 function atr(x,n=14){const r=[];let a=0;x.forEach((k,i)=>{const t=i?Math.max(k.h-k.l,Math.abs(k.h-x[i-1].c),Math.abs(k.l-x[i-1].c)):k.h-k.l;a=i<n?(a*i+t)/(i+1):(a*(n-1)+t)/n;r.push(a)});return r}
+function pivots(x,L=3){const H=[],O=[];for(let j=L;j<x.length-L;j++){let u=1,d=1;for(let m=j-L;m<=j+L;m++){if(x[m].h>x[j].h)u=0;if(x[m].l<x[j].l)d=0}if(u)H.push([j,x[j].h]);if(d)O.push([j,x[j].l])}return[H,O]}
+function levels(P,A){const all=[...P[0],...P[1]].map(a=>a[1]).sort((a,b)=>a-b),cl=[];all.forEach(v=>{const c=cl[cl.length-1];if(c&&v-c.m<=.6*A){c.s+=v;c.n++;c.m=c.s/c.n}else cl.push({s:v,n:1,m:v})});return cl.filter(c=>c.n>=2).map(c=>({p:c.m,n:c.n}))}
+function zones(x,A){const Z=[];for(let j=Math.max(1,x.length-150);j<x.length-2;j++){const a=x[j],n=x[j+1];if(Math.abs(n.c-n.o)<1.5*A)continue;
+if(n.c>n.o&&a.c<a.o)Z.push({t:'D',lo:a.l,hi:Math.max(a.o,a.c),j});if(n.c<n.o&&a.c>a.o)Z.push({t:'S',lo:Math.min(a.o,a.c),hi:a.h,j})}
+return Z.filter(z=>x.slice(z.j+2).every(k=>z.t==='D'?k.c>z.lo:k.c<z.hi))}
 
 function analyze(k,x,bx){
-const M=MK[k],c=x.map(a=>a.c),v=x.map(a=>a.v),i=c.length-1,px=c[i],F=[],add=(n,r)=>F.push({n,s:r[0],t:r[1]});
+const M=MK[k],on=z=>ST.includes(z),c=x.map(a=>a.c),v=x.map(a=>a.v),i=c.length-1,px=c[i],F=[],add=(n,r)=>F.push({n,s:r[0],t:r[1]});
 const e20=ema(c,20),e50=ema(c,50),e200=ema(c,200),a12=ema(c,12),a26=ema(c,26),ml=a12.map((a,j)=>a-a26[j]),sg=ema(ml,9),h=ml.map((a,j)=>a-sg[j]);
 const R=rsi(c)[i],A=atr(x)[i],mid=sma(c,20,i),s2=sd(c,20,i),bu=mid+2*s2,bl=mid-2*s2,pb=(px-bl)/(bu-bl||1),f=(z,d=0)=>z.toFixed(d);
 const tr=()=>px>e20[i]&&e20[i]>e50[i]?[2,'Price is above the 20 and 50 averages and they are stacked upward: clear uptrend.']:px<e20[i]&&e20[i]<e50[i]?[-2,'Price is below the 20 and 50 averages and they are stacked downward: clear downtrend.']:px>e50[i]?[1,'Price is above the 50 average but the short-term trend is mixed.']:[-1,'Price is below the 50 average and the short-term trend is mixed.'];
 const mc=()=>h[i]>0?(h[i]>h[i-1]?[2,'MACD momentum is positive and getting stronger.']:[1,'MACD momentum is positive but fading.']):(h[i]<h[i-1]?[-2,'MACD momentum is negative and getting stronger.']:[-1,'MACD momentum is negative but recovering.']);
-if(k==='BTC'){
+let max=0;
+if(on('core')){max+=M.max;
+if(M.kind==='BTC'){
 add('Trend',tr());add('Momentum (MACD)',mc());
 add('RSI '+f(R),R>70?[-1,'RSI is above 70: overheated, a pullback is likely.']:R>=55?[1,'RSI is between 55 and 70: healthy bullish strength.']:R>=45?[0,'RSI is neutral (45 to 55).']:R>=30?[-1,'RSI is between 30 and 45: bearish pressure.']:[1,'RSI is below 30: oversold, a bounce is possible.']);
-const vr=v[i]/sma(v,20,i),g=c[i]>x[i].o;
-add('Volume',vr>1.5?[g?1:-1,`Volume is ${f(vr,1)}x normal on a ${g?'green':'red'} candle: ${g?'buyers':'sellers'} are pushing.`]:[0,`Volume is ${f(vr,1)}x normal: no strong confirmation.`])}
-if(k==='ETH'){
+const vr=v[i]/sma(v,20,i),gr=c[i]>x[i].o;
+add('Volume',vr>1.5?[gr?1:-1,`Volume is ${f(vr,1)}x normal on a ${gr?'green':'red'} candle: ${gr?'buyers':'sellers'} are pushing.`]:[0,`Volume is ${f(vr,1)}x normal: no strong confirmation.`])}
+if(M.kind==='ETH'){
 let lc=0;const bw=j=>4*sd(c,20,j)/sma(c,20,j);for(let j=i-99;j<i;j++)if(bw(j)<bw(i))lc++;
 add('Breakout (Bollinger)',px>bu?[2,'Price closed above the upper band: upside breakout.']:px<bl?[-2,'Price closed below the lower band: downside breakout.']:pb>.8?[1,'Price is pushing against the upper band.']:pb<.2?[-1,'Price is pressing the lower band.']:[0,'Price is inside the bands: no breakout yet.']);
 if(lc<20)F[F.length-1].t+=' The bands are unusually tight, so a big move may be building.';
@@ -80,60 +79,79 @@ add('Trend',tr());add('Momentum (MACD)',mc());
 if(bx){const b=bx.map(a=>a.c),bi=b.length-1,ch=(c[i]/b[bi])/(c[i-12]/b[bi-12])-1;
 add('ETH vs BTC',ch>.005?[1,`ETH gained ${f(ch*100,2)}% on BTC over 12 candles: it is leading.`]:ch<-.005?[-1,`ETH lost ${f(-ch*100,2)}% against BTC over 12 candles: it is lagging.`]:[0,'ETH is moving in line with BTC.'])}
 add('RSI '+f(R),R>75?[-1,'RSI is above 75: stretched, a pullback is likely.']:R<25?[1,'RSI is below 25: oversold, a bounce is likely.']:[0,'RSI is not at an extreme.'])}
-if(k==='XAU'){
+if(M.kind==='XAU'){
 const hh=Math.max(...x.slice(-14).map(a=>a.h)),ll=Math.min(...x.slice(-14).map(a=>a.l)),K=(px-ll)/(hh-ll||1)*100;
-add('RSI '+f(R),R<30?[2,'RSI is below 30: gold is oversold, a bounce is likely.']:R<40?[1,'RSI is below 40: leaning oversold.']:R>70?[-2,'RSI is above 70: gold is overbought, a drop is likely.']:R>60?[-1,'RSI is above 60: leaning overbought.']:[0,'RSI is neutral.']);
+add('RSI '+f(R),R<30?[2,'RSI is below 30: oversold, a bounce is likely.']:R<40?[1,'RSI is below 40: leaning oversold.']:R>70?[-2,'RSI is above 70: overbought, a drop is likely.']:R>60?[-1,'RSI is above 60: leaning overbought.']:[0,'RSI is neutral.']);
 add('Bollinger position',pb<.05?[2,'Price is at the bottom of its normal range.']:pb<.2?[1,'Price is near the bottom of its range.']:pb>.95?[-2,'Price is at the top of its normal range.']:pb>.8?[-1,'Price is near the top of its range.']:[0,'Price is mid-range.']);
 add('Stochastic '+f(K),K<20?[1,'Stochastic is below 20: short-term oversold.']:K>80?[-1,'Stochastic is above 80: short-term overbought.']:[0,'Stochastic is neutral.']);
-const raw=F.reduce((a,z)=>a+z.s,0),up=e50[i]>e200[i],dn=e50[i]<e200[i];
-add('Trend filter',raw>0&&dn?[-1,'The 50 average is below the 200: the main trend is down, so buying dips is riskier.']:raw<0&&up?[1,'The 50 average is above the 200: the main trend is up, so selling rallies is riskier.']:[0,'This signal does not fight the main trend.'])}
-const sc=F.reduce((a,z)=>a+z.s,0),quiet=A/px*100<M.q;
-let sig=sc>=M.thr?'BUY':sc<=-M.thr?'SELL':'WAIT',note='';
+const raw=F.reduce((q,z)=>q+z.s,0),up=e50[i]>e200[i],dn=e50[i]<e200[i];
+add('Trend filter',raw>0&&dn?[-1,'The 50 average is below the 200: the main trend is down, so buying dips is riskier.']:raw<0&&up?[1,'The 50 average is above the 200: the main trend is up, so selling rallies is riskier.']:[0,'This signal does not fight the main trend.'])}}
+const P=pivots(x),lv=levels(P,A),a=x[i],b=x[i-1],t6=.6*A;
+const sup=lv.find(L=>Math.abs(Math.min(a.l,b.l)-L.p)<=t6&&px>=L.p-t6),res=lv.find(L=>Math.abs(Math.max(a.h,b.h)-L.p)<=t6&&px<=L.p+t6);
+const ov={lv:lv.slice().sort((q,w)=>Math.abs(q.p-px)-Math.abs(w.p-px)).slice(0,6),Z:[],sw:null,pat:null};
+if(on('sr')){max+=2;add('Support & resistance',sup&&!res?[2,`Price is at a support level near ${p(sup.p)}, touched ${sup.n} times: buyers defended it before.`]:res&&!sup?[-2,`Price is at a resistance level near ${p(res.p)}, touched ${res.n} times: sellers pushed back before.`]:[0,'Price is between levels, not at support or resistance.'])}
+const Zs=zones(x,A),D=Zs.filter(z=>z.t==='D').pop(),S=Zs.filter(z=>z.t==='S').pop();ov.Z=[D,S].filter(Boolean);
+if(on('sd')){max+=2;const inD=D&&px<=D.hi+.3*A&&px>=D.lo-.3*A,inS=S&&px>=S.lo-.3*A&&px<=S.hi+.3*A;
+add('Supply & demand',inD&&!inS?[2,`Price is inside a demand zone (${p(D.lo)} to ${p(D.hi)}) where buyers pushed price up sharply before.`]:inS&&!inD?[-2,`Price is inside a supply zone (${p(S.lo)} to ${p(S.hi)}) where sellers pushed price down sharply before.`]:[0,'Price is not inside a fresh supply or demand zone.'])}
+let sw=null;const hp=P[0].filter(q=>q[0]<i-3).slice(-6),lp=P[1].filter(q=>q[0]<i-3).slice(-6);
+for(let m=i;m>i-3&&!sw;m--){const q=x[m],H=hp.find(z=>z[0]<m&&q.h>z[1]&&q.c<z[1]),W=lp.find(z=>z[0]<m&&q.l<z[1]&&q.c>z[1]);if(H)sw={lvl:H[1],idx:m,d:-1,from:H[0]};else if(W)sw={lvl:W[1],idx:m,d:1,from:W[0]}}
+ov.sw=sw;
+if(on('lq')){max+=2;add('Liquidity sweep',sw?[2*sw.d,sw.d>0?`Price dipped below a swing low near ${p(sw.lvl)} to grab stop orders, then closed back above: a bullish liquidity sweep.`:`Price spiked above a swing high near ${p(sw.lvl)} to grab stop orders, then closed back below: a bearish liquidity sweep.`]:[0,'No recent stop-hunt beyond a swing high or low.'])}
+if(on('cp')){max+=2;const bd=Math.abs(a.c-a.o),rg=a.h-a.l||1e-9,lw=Math.min(a.o,a.c)-a.l,uw=a.h-Math.max(a.o,a.c);let pt=null;
+if(b.c<b.o&&a.c>a.o&&a.o<=b.c&&a.c>=b.o)pt=['Bullish engulfing',1];else if(b.c>b.o&&a.c<a.o&&a.o>=b.c&&a.c<=b.o)pt=['Bearish engulfing',-1];else if(bd>0&&lw>=2*bd&&uw<=.35*rg)pt=['Hammer (bullish pin bar)',1];else if(bd>0&&uw>=2*bd&&lw<=.35*rg)pt=['Shooting star (bearish pin bar)',-1];
+const ok=pt&&(pt[1]>0?sup:res);if(ok)ov.pat={idx:i,n:pt[0],d:pt[1]};
+add('Candlestick pattern',ok?[2*pt[1],`${pt[0]} formed right at ${pt[1]>0?'support':'resistance'}, so the pattern counts.`]:pt?[0,`${pt[0]} formed, but not at support or resistance, so it is ignored.`]:[0,'No clear candlestick pattern on the last candle.'])}
+const sc=F.reduce((q,z)=>q+z.s,0),thr=Math.max(2,Math.round(M.thr/M.max*max)),quiet=A/px*100<M.q;
+let sig=sc>=thr?'BUY':sc<=-thr?'SELL':'WAIT',note='';
 if(quiet&&sig!=='WAIT'){sig='WAIT';note='The market is too quiet right now: expected moves are too small to cover trading costs.'}
-else if(sig==='WAIT')note=`Score ${sc>0?'+':''}${sc} has not reached ±${M.thr}. Signals are mixed or weak, so waiting is the better move.`;
-else note=`Score ${sc>0?'+':''}${sc} reached ±${M.thr}, so most factors point the same way.`;
-return{sig,sc,note,F,A,conf:Math.round(Math.min(1,Math.abs(sc)/M.max)*100)}}
+else if(sig==='WAIT')note=`Score ${sc>0?'+':''}${sc} has not reached ±${thr}. Signals are mixed or weak, so waiting is the better move.`;
+else note=`Score ${sc>0?'+':''}${sc} reached ±${thr}, so enough of your chosen strategies point the same way.`;
+return{sig,sc,thr,max,note,F,A,ov,conf:Math.round(Math.min(1,Math.abs(sc)/max)*100)}}
 
 async function jget(u){const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
-async function candles(k,t){
-const M=MK[k],key=ls('tdkey');if(k==='XAU')gErr='';
-if(k==='XAU'&&key)try{const d=await jget(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${t==='15m'?'15min':'1h'}&outputsize=300&apikey=${encodeURIComponent(key)}`);
-if(d.status==='error')throw Error(d.message);return d.values.reverse().map(a=>({o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}))}catch(e){gErr=e.message}
+async function candles(k,t){const M=MK[k];
 for(const h of ['https://data-api.binance.vision','https://api.binance.com']){
 try{const d=await jget(`${h}/api/v3/klines?symbol=${M.sym}&interval=${t}&limit=300`);return d.map(a=>({o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}))}catch(e){}}
-if(M.cb){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${t==='15m'?900:3600}`);return d.reverse().map(a=>({l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}))}
-throw Error('Could not load prices')}
+throw Error('Binance did not respond')}
 
-const p=n=>n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-function spark(a){const cv=$('#cv'),w=cv.width=cv.clientWidth*2,H=cv.height=160,g=cv.getContext('2d'),lo=Math.min(...a),hi=Math.max(...a);
-g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
-a.forEach((y,i)=>{const X=i/(a.length-1)*w,Y=H-8-(y-lo)/(hi-lo||1)*(H-16);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke()}
+function chart(x,ov){
+const cv=$('#cv'),W=cv.width=cv.clientWidth*2,H=cv.height=520,g=cv.getContext('2d'),s=Math.max(0,x.length-100),v=x.slice(s),cs=getComputedStyle(document.documentElement),C=n=>cs.getPropertyValue(n).trim(),R=W-120;
+let lo=Math.min(...v.map(a=>a.l)),hi=Math.max(...v.map(a=>a.h));const pd=(hi-lo)*.06;lo-=pd;hi+=pd;
+const w=R/v.length,X=j=>(j-s+.5)*w,Y=q=>H-10-(q-lo)/(hi-lo)*(H-20),T=(t,xx,yy,c)=>{g.fillStyle=c;g.font='18px system-ui';g.fillText(t,xx,yy)};
+if(ST.includes('sd'))ov.Z.forEach(z=>{if(z.hi<lo||z.lo>hi)return;const y1=Y(Math.min(z.hi,hi)),y2=Y(Math.max(z.lo,lo)),x0=Math.max(0,X(z.j)-w/2);g.fillStyle=z.t==='D'?'rgba(47,163,107,.25)':'rgba(239,90,80,.25)';g.fillRect(x0,y1,R-x0,y2-y1);T(z.t==='D'?'Demand':'Supply',x0+4,y1+18,C(z.t==='D'?'--g':'--r'))});
+if(ST.includes('sr')){g.setLineDash([8,6]);g.lineWidth=2;ov.lv.forEach(L=>{if(L.p<lo||L.p>hi)return;g.strokeStyle='#4c8dff';g.beginPath();g.moveTo(0,Y(L.p));g.lineTo(R,Y(L.p));g.stroke();T(p(L.p),R+4,Y(L.p)+6,'#4c8dff')});g.setLineDash([])}
+v.forEach((a,j)=>{const xx=X(s+j),cl=C(a.c>=a.o?'--g':'--r');g.strokeStyle=cl;g.fillStyle=cl;g.lineWidth=2;g.beginPath();g.moveTo(xx,Y(a.h));g.lineTo(xx,Y(a.l));g.stroke();g.fillRect(xx-w*.35,Y(Math.max(a.o,a.c)),w*.7,Math.max(2,Math.abs(Y(a.o)-Y(a.c))))});
+if(ST.includes('lq')&&ov.sw&&ov.sw.idx>=s){const q=ov.sw;g.strokeStyle='#a066ff';g.lineWidth=2;g.setLineDash([4,4]);g.beginPath();g.moveTo(X(Math.max(q.from,s)),Y(q.lvl));g.lineTo(X(q.idx)+w*3,Y(q.lvl));g.stroke();g.setLineDash([]);T('Sweep',X(q.idx)-50,Y(q.lvl)+(q.d>0?24:-8),'#a066ff')}
+if(ST.includes('cp')&&ov.pat){const q=ov.pat,a=x[q.idx];g.strokeStyle='#f2b01e';g.lineWidth=3;g.beginPath();g.arc(X(q.idx),Y((a.h+a.l)/2),Math.max(14,Math.abs(Y(a.l)-Y(a.h))/2+8),0,7);g.stroke();T(q.n.split(' ')[0],X(q.idx)-70,Y(q.d>0?a.l:a.h)+(q.d>0?36:-14),'#f2b01e')}}
+
 function render(k,x,bx){
-const M=MK[k],live=x[x.length-1].c,r=analyze(k,x.slice(0,-1),bx&&bx.slice(0,-1)),col={BUY:'g',SELL:'r',WAIT:'y'}[r.sig],dir=r.sig==='BUY'?1:-1;
-const C=cfg(),ct=+(C.ct&&C.ct[k])||M.ct,sdist=1.5*r.A,rk=(+C.bal||0)*(+C.risk||0)/100,lots=rk?Math.floor(rk/(sdist*ct)*100)/100:0;
-const lt=!rk?'Add your balance and risk in Settings to see the lot size.':lots<0.01?`Even 0.01 lot risks about $${p(0.01*sdist*ct)}, more than your ${C.risk}% limit. Skip this trade or accept more risk.`:`Lot size ${lots.toFixed(2)} risks about $${p(lots*sdist*ct)} (${C.risk}% of your balance) if the stop is hit.`;
-const lv=r.sig==='WAIT'?'':`<div class="lv"><div><span>Entry (feed price)</span>${p(live)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(live-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(live+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(live+dir*2*sdist)}</div></div><p><b>${lt}</b></p><p class="mu small">In MT5 this is the ${M.ex} symbol. Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.</p>`;
-$('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b></div>
+last=[k,x,bx];
+if(!ST.length){$('#out').innerHTML='<div class="card">Pick at least one strategy in the list above.</div>';return}
+const M=MK[k],live=x[x.length-1].c,r=analyze(k,x.slice(0,-1),bx&&bx.slice(0,-1)),col={BUY:'g',SELL:'r',WAIT:'y'}[r.sig],dir=r.sig==='BUY'?1:-1,sdist=1.5*r.A;
+const lv=r.sig==='WAIT'?'':`<div class="lv"><div><span>Entry (Binance price)</span>${p(live)}</div><div><span>Stop-loss, ${p(sdist)} away</span>${p(live-dir*sdist)}</div><div><span>Target 1, ${p(sdist)} away</span>${p(live+dir*sdist)}</div><div><span>Target 2, ${p(2*sdist)} away</span>${p(live+dir*2*sdist)}</div></div>`;
+const lg=[['sr','#4c8dff','Support and resistance'],['sd','#2fa36b','Demand and supply zones'],['lq','#a066ff','Liquidity sweep'],['cp','#f2b01e','Candle pattern at a level']].filter(q=>ST.includes(q[0])).map(q=>`<span style="color:${q[1]}">&#9679; ${q[2]}</span>`).join('');
+$('#out').innerHTML=`<div class="card"><canvas id="cv"></canvas><div id="lg" class="small">${lg}</div><div class="mu small">Last 100 candles, ${tf} chart</div></div>
+<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b> <span class="mu small">from Binance ${M.sym}</span></div>
 <div class="sig ${col}">${r.sig==='WAIT'?'Wait':r.sig==='BUY'?'Buy':'Sell'}</div>
 <div class="bar"><i class="${col}" style="width:${r.conf}%"></i></div>
-<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${k==='XAU'&&goldClosed()?'<p class="y"><b>Exness gold is closed for the weekend.</b> Treat this signal as a preview until it reopens, around Sunday 22:00 UTC.</p>':''}${lv}</div>
+<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${r.max}</div><p>${r.note}</p>${lv}</div>
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
-<div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>
-<details class="card"><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets are based on ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
-spark(x.slice(-80).map(a=>a.c));
-$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. Signals use closed candles, so they change at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(k==='XAU'&&!ls('tdkey')?' Gold uses PAXG (a gold-backed token) as a stand-in. Open Settings to add a Twelve Data key for true XAU/USD.':'')+(k==='XAU'&&gErr?' Twelve Data error: '+gErr+' Using PAXG instead.':'')}
+<details class="card"><summary>Core strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets use ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
+chart(x,r.ov);
+$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. Signals use closed candles, so they change at most once per '+({'15m':'15 minutes','1h':'hour','4h':'4 hours'}[tf])+'.'+(M.note?' '+M.note:'')}
 async function load(){const my=++tok;$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...';
 try{const x=await candles(cur,tf),b=cur==='ETH'?await candles('BTC',tf):null;if(my===tok)render(cur,x,b)}
 catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then tap Refresh.'}
 finally{if(my===tok){$('#rf').disabled=false;$('#rf').textContent='Refresh'}}}
 function sel(){document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tf))}
 $('#mk').innerHTML=Object.keys(MK).map(k=>`<button data-k="${k}">${MK[k].n}</button>`).join('');
-$('#tfs').innerHTML=['15m','1h'].map(t=>`<button data-t="${t}">${t}</button>`).join('');
+$('#tfs').innerHTML=['15m','1h','4h'].map(t=>`<button data-t="${t}">${t}</button>`).join('');
+$('#sl').innerHTML=SG.map(a=>`<label class="ck"><input type="checkbox" value="${a[0]}"${ST.includes(a[0])?' checked':''}><span><b>${a[1]}</b><br><span class="mu small">${a[2]}</span></span></label>`).join('');
+$('#sl').onchange=()=>{ST=[...document.querySelectorAll('#sl input:checked')].map(c=>c.value);ls('sg',ST.join(','));if(last)render(...last)};
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!(b.dataset.k||b.dataset.t))return;if(b.dataset.k)cur=b.dataset.k;if(b.dataset.t)tf=b.dataset.t;sel();$('#out').innerHTML='';load()});
-const cfg=()=>{try{return JSON.parse(ls('cfg')||'{}')}catch(e){return{}}};
-const goldClosed=()=>{const d=new Date(),w=d.getUTCDay(),h=d.getUTCHours();return w===6||(w===5&&h>=22)||(w===0&&h<22)};
+const setTh=t=>{document.documentElement.dataset.theme=t;ls('th',t);$('#th').textContent=t==='dark'?'Light mode':'Dark mode'};
+$('#th').onclick=()=>{setTh(document.documentElement.dataset.theme==='dark'?'light':'dark');if(last)render(...last)};
 $('#rf').onclick=load;
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;$('#c1').value=c.BTC||MK.BTC.ct;$('#c2').value=c.ETH||MK.ETH.ct;$('#c3').value=c.XAU||MK.XAU.ct;$('#tdk').value=ls('tdkey')||'';$('#dl').showModal()};
-$('#sv').onclick=()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,ct:{BTC:+$('#c1').value||1,ETH:+$('#c2').value||1,XAU:+$('#c3').value||100}}));ls('tdkey',$('#tdk').value.trim());$('#dl').close();load()};
+setTh(ls('th')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));
 setInterval(()=>{if(!document.hidden)load()},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});sel();load();
 </script></body></html>
