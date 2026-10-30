@@ -53,7 +53,7 @@ ETH:{n:'Ethereum',ex:'ETHUSD',ct:1,sym:'ETHUSDT',cb:'ETH-USD',strat:'Breakout pl
 d:'Ethereum often explodes out of quiet ranges and follows Bitcoin. This bot scores Bollinger band breakouts, MACD, trend, how ETH is doing against BTC, and an RSI extreme guard.'},
 XAU:{n:'Gold',ex:'XAUUSD',ct:100,sym:'PAXGUSDT',td:'XAU/USD',strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.04,
 d:'Gold moves in ranges more than crypto, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic). A 50/200 EMA trend filter weakens signals that fight the main trend.'}};
-let cur='BTC',tf='15m',tok=0;
+let cur='BTC',tf='15m',tok=0,gErr='';
 
 const ema=(a,n)=>{const k=2/(n+1);let p=a[0];return a.map((v,i)=>i?(p=v*k+p*(1-k)):v)};
 const sma=(a,n,i)=>{let s=0;for(let j=i-n+1;j<=i;j++)s+=a[j];return s/n};
@@ -96,9 +96,9 @@ return{sig,sc,note,F,A,conf:Math.round(Math.min(1,Math.abs(sc)/M.max)*100)}}
 
 async function jget(u){const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
 async function candles(k,t){
-const M=MK[k],key=ls('tdkey');
-if(k==='XAU'&&key){const d=await jget(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${t==='15m'?'15min':'1h'}&outputsize=300&apikey=${encodeURIComponent(key)}`);
-if(d.status==='error')throw Error(d.message);return d.values.reverse().map(a=>({o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}))}
+const M=MK[k],key=ls('tdkey');if(k==='XAU')gErr='';
+if(k==='XAU'&&key)try{const d=await jget(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${t==='15m'?'15min':'1h'}&outputsize=300&apikey=${encodeURIComponent(key)}`);
+if(d.status==='error')throw Error(d.message);return d.values.reverse().map(a=>({o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}))}catch(e){gErr=e.message}
 for(const h of ['https://data-api.binance.vision','https://api.binance.com']){
 try{const d=await jget(`${h}/api/v3/klines?symbol=${M.sym}&interval=${t}&limit=300`);return d.map(a=>({o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}))}catch(e){}}
 if(M.cb){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${t==='15m'?900:3600}`);return d.reverse().map(a=>({l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}))}
@@ -112,8 +112,8 @@ function render(k,x,bx){
 const M=MK[k],live=x[x.length-1].c,r=analyze(k,x.slice(0,-1),bx&&bx.slice(0,-1)),col={BUY:'g',SELL:'r',WAIT:'y'}[r.sig],dir=r.sig==='BUY'?1:-1;
 const C=cfg(),ct=+(C.ct&&C.ct[k])||M.ct,sdist=1.5*r.A,rk=(+C.bal||0)*(+C.risk||0)/100,lots=rk?Math.floor(rk/(sdist*ct)*100)/100:0;
 const lt=!rk?'Add your balance and risk in Settings to see the lot size.':lots<0.01?`Even 0.01 lot risks about $${p(0.01*sdist*ct)}, more than your ${C.risk}% limit. Skip this trade or accept more risk.`:`Lot size ${lots.toFixed(2)} risks about $${p(lots*sdist*ct)} (${C.risk}% of your balance) if the stop is hit.`;
-const lv=r.sig==='WAIT'?'':`<div class="lv"><div><span>Entry (feed price)</span>${p(live)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(live-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(live+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(live+dir*2*sdist)}</div></div><p><b>${lt}</b></p><p class="mu small">Exness prices differ slightly from this feed. In MT5, place the stop and targets using the distances above from your real entry price.</p>`;
-$('#out').innerHTML=`<div class="card"><div class="mu">${M.n} (${M.ex} on Exness), ${tf} chart</div><div><b>${p(live)}</b></div>
+const lv=r.sig==='WAIT'?'':`<div class="lv"><div><span>Entry (feed price)</span>${p(live)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(live-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(live+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(live+dir*2*sdist)}</div></div><p><b>${lt}</b></p><p class="mu small">In MT5 this is the ${M.ex} symbol. Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.</p>`;
+$('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b></div>
 <div class="sig ${col}">${r.sig==='WAIT'?'Wait':r.sig==='BUY'?'Buy':'Sell'}</div>
 <div class="bar"><i class="${col}" style="width:${r.conf}%"></i></div>
 <div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${k==='XAU'&&goldClosed()?'<p class="y"><b>Exness gold is closed for the weekend.</b> Treat this signal as a preview until it reopens, around Sunday 22:00 UTC.</p>':''}${lv}</div>
@@ -121,13 +121,13 @@ $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} (${M.ex} on Exness
 <div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>
 <details class="card"><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets are based on ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
 spark(x.slice(-80).map(a=>a.c));
-$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. Signals use closed candles, so they change at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(k==='XAU'&&!ls('tdkey')?' Gold uses PAXG (a gold-backed token) as a stand-in. Open Settings to add a Twelve Data key for true XAU/USD.':'')}
+$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. Signals use closed candles, so they change at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(k==='XAU'&&!ls('tdkey')?' Gold uses PAXG (a gold-backed token) as a stand-in. Open Settings to add a Twelve Data key for true XAU/USD.':'')+(k==='XAU'&&gErr?' Twelve Data error: '+gErr+' Using PAXG instead.':'')}
 async function load(){const my=++tok;$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...';
 try{const x=await candles(cur,tf),b=cur==='ETH'?await candles('BTC',tf):null;if(my===tok)render(cur,x,b)}
 catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then tap Refresh.'}
 finally{if(my===tok){$('#rf').disabled=false;$('#rf').textContent='Refresh'}}}
 function sel(){document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tf))}
-$('#mk').innerHTML=Object.keys(MK).map(k=>`<button data-k="${k}">${MK[k].ex}</button>`).join('');
+$('#mk').innerHTML=Object.keys(MK).map(k=>`<button data-k="${k}">${MK[k].n}</button>`).join('');
 $('#tfs').innerHTML=['15m','1h'].map(t=>`<button data-t="${t}">${t}</button>`).join('');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!(b.dataset.k||b.dataset.t))return;if(b.dataset.k)cur=b.dataset.k;if(b.dataset.t)tf=b.dataset.t;sel();$('#out').innerHTML='';load()});
 const cfg=()=>{try{return JSON.parse(ls('cfg')||'{}')}catch(e){return{}}};
@@ -135,5 +135,5 @@ const goldClosed=()=>{const d=new Date(),w=d.getUTCDay(),h=d.getUTCHours();retur
 $('#rf').onclick=load;
 $('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;$('#c1').value=c.BTC||MK.BTC.ct;$('#c2').value=c.ETH||MK.ETH.ct;$('#c3').value=c.XAU||MK.XAU.ct;$('#tdk').value=ls('tdkey')||'';$('#dl').showModal()};
 $('#sv').onclick=()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,ct:{BTC:+$('#c1').value||1,ETH:+$('#c2').value||1,XAU:+$('#c3').value||100}}));ls('tdkey',$('#tdk').value.trim());$('#dl').close();load()};
-setInterval(load,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});sel();load();
+setInterval(()=>{if(!document.hidden)load()},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});sel();load();
 </script></body></html>
