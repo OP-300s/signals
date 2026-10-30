@@ -25,20 +25,33 @@ button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);bor
 .ch{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid currentColor;display:grid;place-items:center;font-weight:700;font-size:14px}
 canvas{width:100%;height:80px;display:block}
 summary{font-weight:600}
+.hb{display:flex;gap:8px}.hb button{padding:6px 12px;font-size:14px}
+dialog{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:14px;width:min(92vw,420px)}
+dialog label{display:block;margin:10px 0;font-size:14px;color:var(--mu)}
+dialog input{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
 </style></head><body>
-<h1>My Signals <button id="gear" aria-label="Settings">Settings</button></h1>
+<h1>My Signals <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
 <div class="tabs" id="mk"></div><div class="tabs sm" id="tfs"></div>
 <div id="out"></div>
 <p id="st" class="mu small"></p>
+<dialog id="dl"><b>Your Exness setup</b>
+<label>Account balance (USD)<input id="bal" type="number" inputmode="decimal"></label>
+<label>Risk per trade (%)<input id="risk" type="number" inputmode="decimal"></label>
+<label>BTCUSD units per 1.00 lot<input id="c1" type="number" inputmode="decimal"></label>
+<label>ETHUSD units per 1.00 lot<input id="c2" type="number" inputmode="decimal"></label>
+<label>XAUUSD ounces per 1.00 lot<input id="c3" type="number" inputmode="decimal"></label>
+<label>Twelve Data key for true gold prices (optional)<input id="tdk"></label>
+<p class="mu small">Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
+<button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></dialog>
 <p class="mu small">Not financial advice. These are rule-based signals and they can be wrong. Never risk money you cannot afford to lose.</p>
 <script>
 const $=s=>document.querySelector(s),ls=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch(e){return null}};
 const MK={
-BTC:{n:'Bitcoin',sym:'BTCUSDT',cb:'BTC-USD',strat:'Momentum trend-follower',max:6,thr:3,q:.1,
+BTC:{n:'Bitcoin',ex:'BTCUSD',ct:1,sym:'BTCUSDT',cb:'BTC-USD',strat:'Momentum trend-follower',max:6,thr:3,q:.1,
 d:'Bitcoin trends hard once it moves, so this bot rides momentum. It scores four things: trend direction (EMA 20 and 50), MACD momentum, RSI strength and volume confirmation. It says buy or sell only when most of them agree.'},
-ETH:{n:'Ethereum',sym:'ETHUSDT',cb:'ETH-USD',strat:'Breakout plus strength versus Bitcoin',max:8,thr:4,q:.12,
+ETH:{n:'Ethereum',ex:'ETHUSD',ct:1,sym:'ETHUSDT',cb:'ETH-USD',strat:'Breakout plus strength versus Bitcoin',max:8,thr:4,q:.12,
 d:'Ethereum often explodes out of quiet ranges and follows Bitcoin. This bot scores Bollinger band breakouts, MACD, trend, how ETH is doing against BTC, and an RSI extreme guard.'},
-XAU:{n:'Gold (XAU/USD)',sym:'PAXGUSDT',td:'XAU/USD',strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.04,
+XAU:{n:'Gold',ex:'XAUUSD',ct:100,sym:'PAXGUSDT',td:'XAU/USD',strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.04,
 d:'Gold moves in ranges more than crypto, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic). A 50/200 EMA trend filter weakens signals that fight the main trend.'}};
 let cur='BTC',tf='15m',tok=0;
 
@@ -97,23 +110,30 @@ g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
 a.forEach((y,i)=>{const X=i/(a.length-1)*w,Y=H-8-(y-lo)/(hi-lo||1)*(H-16);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke()}
 function render(k,x,bx){
 const M=MK[k],live=x[x.length-1].c,r=analyze(k,x.slice(0,-1),bx&&bx.slice(0,-1)),col={BUY:'g',SELL:'r',WAIT:'y'}[r.sig],dir=r.sig==='BUY'?1:-1;
-const lv=r.sig==='WAIT'?'':`<div class="lv"><div><span>Entry</span>${p(live)}</div><div><span>Stop-loss</span>${p(live-dir*1.5*r.A)}</div><div><span>Target 1</span>${p(live+dir*1.5*r.A)}</div><div><span>Target 2</span>${p(live+dir*3*r.A)}</div></div>`;
-$('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b></div>
+const C=cfg(),ct=+(C.ct&&C.ct[k])||M.ct,sdist=1.5*r.A,rk=(+C.bal||0)*(+C.risk||0)/100,lots=rk?Math.floor(rk/(sdist*ct)*100)/100:0;
+const lt=!rk?'Add your balance and risk in Settings to see the lot size.':lots<0.01?`Even 0.01 lot risks about $${p(0.01*sdist*ct)}, more than your ${C.risk}% limit. Skip this trade or accept more risk.`:`Lot size ${lots.toFixed(2)} risks about $${p(lots*sdist*ct)} (${C.risk}% of your balance) if the stop is hit.`;
+const lv=r.sig==='WAIT'?'':`<div class="lv"><div><span>Entry (feed price)</span>${p(live)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(live-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(live+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(live+dir*2*sdist)}</div></div><p><b>${lt}</b></p><p class="mu small">Exness prices differ slightly from this feed. In MT5, place the stop and targets using the distances above from your real entry price.</p>`;
+$('#out').innerHTML=`<div class="card"><div class="mu">${M.n} (${M.ex} on Exness), ${tf} chart</div><div><b>${p(live)}</b></div>
 <div class="sig ${col}">${r.sig==='WAIT'?'Wait':r.sig==='BUY'?'Buy':'Sell'}</div>
 <div class="bar"><i class="${col}" style="width:${r.conf}%"></i></div>
-<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${lv}</div>
+<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${k==='XAU'&&goldClosed()?'<p class="y"><b>Exness gold is closed for the weekend.</b> Treat this signal as a preview until it reopens, around Sunday 22:00 UTC.</p>':''}${lv}</div>
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
 <div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>
 <details class="card"><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets are based on ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
 spark(x.slice(-80).map(a=>a.c));
 $('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. Signals use closed candles, so they change at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(k==='XAU'&&!ls('tdkey')?' Gold uses PAXG (a gold-backed token) as a stand-in. Open Settings to add a Twelve Data key for true XAU/USD.':'')}
-async function load(){const my=++tok;$('#st').textContent='Updating...';
+async function load(){const my=++tok;$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...';
 try{const x=await candles(cur,tf),b=cur==='ETH'?await candles('BTC',tf):null;if(my===tok)render(cur,x,b)}
-catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then switch tabs to retry.'}}
+catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then tap Refresh.'}
+finally{if(my===tok){$('#rf').disabled=false;$('#rf').textContent='Refresh'}}}
 function sel(){document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tf))}
-$('#mk').innerHTML=Object.keys(MK).map(k=>`<button data-k="${k}">${k==='XAU'?'Gold':k}</button>`).join('');
+$('#mk').innerHTML=Object.keys(MK).map(k=>`<button data-k="${k}">${MK[k].ex}</button>`).join('');
 $('#tfs').innerHTML=['15m','1h'].map(t=>`<button data-t="${t}">${t}</button>`).join('');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!(b.dataset.k||b.dataset.t))return;if(b.dataset.k)cur=b.dataset.k;if(b.dataset.t)tf=b.dataset.t;sel();$('#out').innerHTML='';load()});
-$('#gear').onclick=()=>{const k=prompt('Twelve Data API key for true XAU/USD prices. Leave empty to use the free PAXG gold token instead.',ls('tdkey')||'');if(k!==null){ls('tdkey',k.trim());if(cur==='XAU')load()}};
+const cfg=()=>{try{return JSON.parse(ls('cfg')||'{}')}catch(e){return{}}};
+const goldClosed=()=>{const d=new Date(),w=d.getUTCDay(),h=d.getUTCHours();return w===6||(w===5&&h>=22)||(w===0&&h<22)};
+$('#rf').onclick=load;
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;$('#c1').value=c.BTC||MK.BTC.ct;$('#c2').value=c.ETH||MK.ETH.ct;$('#c3').value=c.XAU||MK.XAU.ct;$('#tdk').value=ls('tdkey')||'';$('#dl').showModal()};
+$('#sv').onclick=()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,ct:{BTC:+$('#c1').value||1,ETH:+$('#c2').value||1,XAU:+$('#c3').value||100}}));ls('tdkey',$('#tdk').value.trim());$('#dl').close();load()};
 setInterval(load,60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});sel();load();
 </script></body></html>
