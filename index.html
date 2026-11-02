@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14181f">
-<title>The Bot</title>
+<title>My Bot</title>
 <style>
 :root{--bg:#f4f5f2;--cd:#fff;--tx:#1b2430;--mu:#667180;--bd:#dde1e5;--g:#1f8a5b;--r:#c8433a;--y:#b7791f}
 @media(prefers-color-scheme:dark){:root{--bg:#14181f;--cd:#1c222b;--tx:#e9edf2;--mu:#93a0b0;--bd:#2b3340;--g:#3fbf86;--r:#ef6a60;--y:#e0a542}}
@@ -10,12 +10,13 @@
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,Roboto,sans-serif;padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom));max-width:560px;margin-inline:auto}
 h1{font-size:20px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
 button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);border-radius:10px;padding:8px 14px}
-.tabs{display:flex;gap:8px;margin-bottom:10px}.tabs button{flex:1}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.tabs button{flex:1 1 28%}
 .tabs .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
-.sm button{padding:5px 10px;flex:none}
+.sm button{padding:5px 10px;flex:1 1 20%}
 .card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:12px 0}
 .mu{color:var(--mu)}.small{font-size:13px}
 .sig{font-size:64px;font-weight:800;letter-spacing:-2px;line-height:1.05;margin:6px 0}
+.api{margin-top:14px;font-size:13px;color:var(--mu)}
 .g{color:var(--g)}.r{color:var(--r)}.y{color:var(--y)}
 .bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin:8px 0}
 .bar i{display:block;height:100%}.bar i.g{background:var(--g)}.bar i.r{background:var(--r)}.bar i.y{background:var(--y)}
@@ -26,40 +27,46 @@ button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);bor
 canvas{width:100%;height:80px;display:block}
 summary{font-weight:600}
 .hb{display:flex;gap:8px}.hb button{padding:6px 12px;font-size:14px}
+.bn{background:var(--tx);color:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:600}
 dialog{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:14px;width:min(92vw,420px)}
 dialog label{display:block;margin:10px 0;font-size:14px;color:var(--mu)}
-dialog input{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+dialog input:not([type=checkbox]),#xp{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.ck{display:flex;gap:10px;align-items:center;margin:12px 0}.ck input{width:22px;height:22px}
 </style></head><body>
-<h1>My Signals <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
+<h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
+<div id="bn" class="bn" hidden onclick="this.hidden=true"></div>
 <div class="tabs" id="mk"></div><div class="tabs sm" id="tfs"></div>
 <div id="out"></div>
 <p id="st" class="mu small"></p>
 <dialog id="dl"><b>Your Exness setup</b>
 <label>Account balance (USD)<input id="bal" type="number" inputmode="decimal"></label>
 <label>Risk per trade (%)<input id="risk" type="number" inputmode="decimal"></label>
-<label>BTCUSD units per 1.00 lot<input id="c1" type="number" inputmode="decimal"></label>
-<label>ETHUSD units per 1.00 lot<input id="c2" type="number" inputmode="decimal"></label>
-<label>XAUUSD ounces per 1.00 lot<input id="c3" type="number" inputmode="decimal"></label>
-<label>Twelve Data key for true gold prices (optional)<input id="tdk"></label>
+<div id="cts"></div>
+<label>Twelve Data key for true gold, silver and EUR/USD prices (optional)<input id="tdk" type="text"></label>
+<div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
 <p class="mu small">Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
 <button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></dialog>
-<p class="mu small">Not financial advice. These are rule-based signals and they can be wrong. Never risk money you cannot afford to lose.</p>
+<p class="mu small">Not financial advice. The bot follows fixed rules and can be wrong. Never risk money you cannot afford to lose.</p>
 <script>
 const $=s=>document.querySelector(s),ls=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch(e){return null}};
 const MK={
-BTC:{n:'Bitcoin',ex:'BTCUSD',ct:1,sym:'BTCUSDT',cb:'BTC-USD',strat:'Momentum trend-follower',max:6,thr:3,q:.1,
-d:'Bitcoin trends hard once it moves, so this bot rides momentum. It scores four things: trend direction (EMA 20 and 50), MACD momentum, RSI strength and volume confirmation. It says buy or sell only when most of them agree.'},
-ETH:{n:'Ethereum',ex:'ETHUSD',ct:1,sym:'ETHUSDT',cb:'ETH-USD',strat:'Breakout plus strength versus Bitcoin',max:8,thr:4,q:.12,
-d:'Ethereum often explodes out of quiet ranges and follows Bitcoin. This bot scores Bollinger band breakouts, MACD, trend, how ETH is doing against BTC, and an RSI extreme guard.'},
-XAU:{n:'Gold',ex:'XAUUSD',ct:100,sym:'PAXGUSDT',td:'XAU/USD',strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.04,
-d:'Gold moves in ranges more than crypto, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic). A 50/200 EMA trend filter weakens signals that fight the main trend.'}};
-let cur='BTC',tf='15m',tok=0,gErr='';
+BTC:{n:'Bitcoin',ex:'BTCUSD',ct:1,sym:'BTCUSDT',cb:'BTC-USD',kind:'BTC',strat:'Momentum trend-follower',max:6,thr:3,q:.1,d:'Bitcoin trends hard once it moves, so this bot rides momentum. It scores four things: trend (EMA 20 and 50), MACD, RSI and volume.'},
+ETH:{n:'Ethereum',ex:'ETHUSD',ct:1,sym:'ETHUSDT',cb:'ETH-USD',kind:'ETH',strat:'Breakout plus strength versus Bitcoin',max:8,thr:4,q:.12,d:'Ethereum often breaks out of quiet ranges and follows Bitcoin. It scores Bollinger band breakouts, MACD, trend, how ETH is doing against BTC and an RSI extreme guard.'},
+XAU:{n:'Gold',ex:'XAUUSD',ct:100,td:'XAU/USD',fut:'XAUUSDT',sym:'PAXGUSDT',kind:'XAU',wk:1,strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.04,d:'Gold moves in ranges more than crypto, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic). A 50/200 EMA trend filter weakens calls that fight the main trend.'},
+XAG:{n:'Silver',ex:'XAGUSD',ct:5000,td:'XAG/USD',fut:'XAGUSDT',kind:'XAU',wk:1,strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.08,d:'Silver swings in ranges like gold but harder, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic), weakened when fighting the 50/200 EMA trend.'},
+EUR:{n:'EUR/USD',ex:'EURUSD',ct:100000,td:'EUR/USD',sym:'EURUSDT',kind:'XAU',wk:1,strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.02,d:'EUR/USD drifts in ranges, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic), weakened when fighting the 50/200 EMA trend.'}};
+let cur='BTC',tf='15m',tok=0,last=null,tick=0;const xp={},bt={};
 
-const ema=(a,n)=>{const k=2/(n+1);let p=a[0];return a.map((v,i)=>i?(p=v*k+p*(1-k)):v)};
+const ema=(a,n)=>{const k=2/(n+1);let q=a[0];return a.map((v,i)=>i?(q=v*k+q*(1-k)):v)};
 const sma=(a,n,i)=>{let s=0;for(let j=i-n+1;j<=i;j++)s+=a[j];return s/n};
 const sd=(a,n,i)=>{const m=sma(a,n,i);let s=0;for(let j=i-n+1;j<=i;j++)s+=(a[j]-m)**2;return Math.sqrt(s/n)};
 function rsi(c,n=14){const r=Array(c.length).fill(50);let g=0,l=0;for(let i=1;i<c.length;i++){const d=c[i]-c[i-1],u=Math.max(d,0),w=Math.max(-d,0);if(i<=n){g+=u/n;l+=w/n}else{g=(g*(n-1)+u)/n;l=(l*(n-1)+w)/n}if(i>=n)r[i]=l?100-100/(1+g/l):100}return r}
 function atr(x,n=14){const r=[];let a=0;x.forEach((k,i)=>{const t=i?Math.max(k.h-k.l,Math.abs(k.h-x[i-1].c),Math.abs(k.l-x[i-1].c)):k.h-k.l;a=i<n?(a*i+t)/(i+1):(a*(n-1)+t)/n;r.push(a)});return r}
+const p=n=>{const d=Math.abs(n)<10?5:2;return n.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})};
+const cfg=()=>{try{return JSON.parse(ls('cfg')||'{}')}catch(e){return{}}};
+const tdLog=[],tdCount=()=>{const t=Date.now();while(tdLog.length&&t-tdLog[0]>60000)tdLog.shift();return tdLog.length};
+const showApi=()=>{const e=$('#api');if(!e)return;const n=tdCount();e.textContent='API '+n+'/8';e.className='api '+(n>=8?'r':n>=6?'y':'')};
+const closed=()=>{const d=new Date(),w=d.getUTCDay(),h=d.getUTCHours();return w===6||(w===5&&h>=22)||(w===0&&h<22)};
 
 function analyze(k,x,bx){
 const M=MK[k],c=x.map(a=>a.c),v=x.map(a=>a.v),i=c.length-1,px=c[i],F=[],add=(n,r)=>F.push({n,s:r[0],t:r[1]});
@@ -67,12 +74,12 @@ const e20=ema(c,20),e50=ema(c,50),e200=ema(c,200),a12=ema(c,12),a26=ema(c,26),ml
 const R=rsi(c)[i],A=atr(x)[i],mid=sma(c,20,i),s2=sd(c,20,i),bu=mid+2*s2,bl=mid-2*s2,pb=(px-bl)/(bu-bl||1),f=(z,d=0)=>z.toFixed(d);
 const tr=()=>px>e20[i]&&e20[i]>e50[i]?[2,'Price is above the 20 and 50 averages and they are stacked upward: clear uptrend.']:px<e20[i]&&e20[i]<e50[i]?[-2,'Price is below the 20 and 50 averages and they are stacked downward: clear downtrend.']:px>e50[i]?[1,'Price is above the 50 average but the short-term trend is mixed.']:[-1,'Price is below the 50 average and the short-term trend is mixed.'];
 const mc=()=>h[i]>0?(h[i]>h[i-1]?[2,'MACD momentum is positive and getting stronger.']:[1,'MACD momentum is positive but fading.']):(h[i]<h[i-1]?[-2,'MACD momentum is negative and getting stronger.']:[-1,'MACD momentum is negative but recovering.']);
-if(k==='BTC'){
+if(M.kind==='BTC'){
 add('Trend',tr());add('Momentum (MACD)',mc());
 add('RSI '+f(R),R>70?[-1,'RSI is above 70: overheated, a pullback is likely.']:R>=55?[1,'RSI is between 55 and 70: healthy bullish strength.']:R>=45?[0,'RSI is neutral (45 to 55).']:R>=30?[-1,'RSI is between 30 and 45: bearish pressure.']:[1,'RSI is below 30: oversold, a bounce is possible.']);
-const vr=v[i]/sma(v,20,i),g=c[i]>x[i].o;
-add('Volume',vr>1.5?[g?1:-1,`Volume is ${f(vr,1)}x normal on a ${g?'green':'red'} candle: ${g?'buyers':'sellers'} are pushing.`]:[0,`Volume is ${f(vr,1)}x normal: no strong confirmation.`])}
-if(k==='ETH'){
+const vr=v[i]/sma(v,20,i),gr=c[i]>x[i].o;
+add('Volume',vr>1.5?[gr?1:-1,`Volume is ${f(vr,1)}x normal on a ${gr?'green':'red'} candle: ${gr?'buyers':'sellers'} are pushing.`]:[0,`Volume is ${f(vr,1)}x normal: no strong confirmation.`])}
+if(M.kind==='ETH'){
 let lc=0;const bw=j=>4*sd(c,20,j)/sma(c,20,j);for(let j=i-99;j<i;j++)if(bw(j)<bw(i))lc++;
 add('Breakout (Bollinger)',px>bu?[2,'Price closed above the upper band: upside breakout.']:px<bl?[-2,'Price closed below the lower band: downside breakout.']:pb>.8?[1,'Price is pushing against the upper band.']:pb<.2?[-1,'Price is pressing the lower band.']:[0,'Price is inside the bands: no breakout yet.']);
 if(lc<20)F[F.length-1].t+=' The bands are unusually tight, so a big move may be building.';
@@ -80,60 +87,91 @@ add('Trend',tr());add('Momentum (MACD)',mc());
 if(bx){const b=bx.map(a=>a.c),bi=b.length-1,ch=(c[i]/b[bi])/(c[i-12]/b[bi-12])-1;
 add('ETH vs BTC',ch>.005?[1,`ETH gained ${f(ch*100,2)}% on BTC over 12 candles: it is leading.`]:ch<-.005?[-1,`ETH lost ${f(-ch*100,2)}% against BTC over 12 candles: it is lagging.`]:[0,'ETH is moving in line with BTC.'])}
 add('RSI '+f(R),R>75?[-1,'RSI is above 75: stretched, a pullback is likely.']:R<25?[1,'RSI is below 25: oversold, a bounce is likely.']:[0,'RSI is not at an extreme.'])}
-if(k==='XAU'){
+if(M.kind==='XAU'){
 const hh=Math.max(...x.slice(-14).map(a=>a.h)),ll=Math.min(...x.slice(-14).map(a=>a.l)),K=(px-ll)/(hh-ll||1)*100;
-add('RSI '+f(R),R<30?[2,'RSI is below 30: gold is oversold, a bounce is likely.']:R<40?[1,'RSI is below 40: leaning oversold.']:R>70?[-2,'RSI is above 70: gold is overbought, a drop is likely.']:R>60?[-1,'RSI is above 60: leaning overbought.']:[0,'RSI is neutral.']);
+add('RSI '+f(R),R<30?[2,'RSI is below 30: oversold, a bounce is likely.']:R<40?[1,'RSI is below 40: leaning oversold.']:R>70?[-2,'RSI is above 70: overbought, a drop is likely.']:R>60?[-1,'RSI is above 60: leaning overbought.']:[0,'RSI is neutral.']);
 add('Bollinger position',pb<.05?[2,'Price is at the bottom of its normal range.']:pb<.2?[1,'Price is near the bottom of its range.']:pb>.95?[-2,'Price is at the top of its normal range.']:pb>.8?[-1,'Price is near the top of its range.']:[0,'Price is mid-range.']);
 add('Stochastic '+f(K),K<20?[1,'Stochastic is below 20: short-term oversold.']:K>80?[-1,'Stochastic is above 80: short-term overbought.']:[0,'Stochastic is neutral.']);
-const raw=F.reduce((a,z)=>a+z.s,0),up=e50[i]>e200[i],dn=e50[i]<e200[i];
-add('Trend filter',raw>0&&dn?[-1,'The 50 average is below the 200: the main trend is down, so buying dips is riskier.']:raw<0&&up?[1,'The 50 average is above the 200: the main trend is up, so selling rallies is riskier.']:[0,'This signal does not fight the main trend.'])}
-const sc=F.reduce((a,z)=>a+z.s,0),quiet=A/px*100<M.q;
+const raw=F.reduce((q,z)=>q+z.s,0),up=e50[i]>e200[i],dn=e50[i]<e200[i];
+add('Trend filter',raw>0&&dn?[-1,'The 50 average is below the 200: the main trend is down, so buying dips is riskier.']:raw<0&&up?[1,'The 50 average is above the 200: the main trend is up, so selling rallies is riskier.']:[0,'This call does not fight the main trend.'])}
+const sc=F.reduce((q,z)=>q+z.s,0),quiet=A/px*100<M.q;
 let sig=sc>=M.thr?'BUY':sc<=-M.thr?'SELL':'WAIT',note='';
 if(quiet&&sig!=='WAIT'){sig='WAIT';note='The market is too quiet right now: expected moves are too small to cover trading costs.'}
-else if(sig==='WAIT')note=`Score ${sc>0?'+':''}${sc} has not reached ±${M.thr}. Signals are mixed or weak, so waiting is the better move.`;
-else note=`Score ${sc>0?'+':''}${sc} reached ±${M.thr}, so most factors point the same way.`;
+else if(sig==='WAIT')note=`Score ${sc>0?'+':''}${sc} has not reached ±${M.thr}. The factors are mixed or weak, so waiting is the better move.`;
 return{sig,sc,note,F,A,conf:Math.round(Math.min(1,Math.abs(sc)/M.max)*100)}}
 
-async function jget(u){const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
-async function candles(k,t){
-const M=MK[k],key=ls('tdkey');if(k==='XAU')gErr='';
-if(k==='XAU'&&key)try{const d=await jget(`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${t==='15m'?'15min':'1h'}&outputsize=300&apikey=${encodeURIComponent(key)}`);
-if(d.status==='error')throw Error(d.message);return d.values.reverse().map(a=>({o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}))}catch(e){gErr=e.message}
-for(const h of ['https://data-api.binance.vision','https://api.binance.com']){
-try{const d=await jget(`${h}/api/v3/klines?symbol=${M.sym}&interval=${t}&limit=300`);return d.map(a=>({o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}))}catch(e){}}
-if(M.cb){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${t==='15m'?900:3600}`);return d.reverse().map(a=>({l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}))}
-throw Error('Could not load prices')}
+function backtest(k,x,bx){
+const H=8,out=[];let prev='';
+for(let i=210;i<x.length-H;i++){
+const w=x.slice(Math.max(0,i-299),i+1),bw=bx&&bx.length===x.length?bx.slice(Math.max(0,i-299),i+1):null,r=analyze(k,w,bw);
+if(r.sig!==prev&&r.sig!=='WAIT'){const m=(r.sig==='BUY'?1:-1)*(x[i+H].c-x[i].c);out.push({m,a:m/r.A})}prev=r.sig}
+const n=out.length;return{n,win:n?out.filter(o=>o.m>0).length/n:0,avg:n?out.reduce((s,o)=>s+o.a,0)/n:0,days:(x.length-218)*(tf==='15m'?15:60)/1440}}
+function showBt(){const e=$('#btx');if(!e)return;const q=bt[cur+'|'+tf];
+const row=(k,z)=>`${MK[k].n}: ${z.n} calls, ${Math.round(z.win*100)}% in profit`;
+e.innerHTML=!q?'Checking past results...':!q.n?'The bot made no Buy or Sell calls in this period.':`On the ${tf} chart over the last ${Math.round(q.days)} days, the bot made <b>${q.n}</b> Buy or Sell calls. If you had closed each one after 8 candles, <b>${Math.round(q.win*100)}%</b> would have been in profit, with an average move of ${q.avg>=0?'+':''}${q.avg.toFixed(2)} ATR per call, before spread and fees. ${q.n<10?'That is too few calls to trust this number.':q.win<.5||q.avg<=0?'Past results are weak here, so treat new calls with extra caution.':'Past results are positive here, but the future can differ.'}`+(Object.keys(bt).filter(z=>z.endsWith('|'+tf)).length>1?'<p class="mu small">'+Object.keys(bt).filter(z=>z.endsWith('|'+tf)).map(z=>row(z.split('|')[0],bt[z])).join('<br>')+'</p>':'')}
 
-const p=n=>n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+async function jget(u){const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
+const kl=d=>d.map(a=>({o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}));
+async function candles(k,t){
+const M=MK[k],key=ls('tdkey');M.err='';
+if(M.td&&key&&tdCount()>=8)M.err='Minute limit of 8 reached.';else if(M.td&&key)try{tdLog.push(Date.now());showApi();const d=await jget(`https://api.twelvedata.com/time_series?symbol=${M.td}&interval=${t==='15m'?'15min':'1h'}&outputsize=500&apikey=${encodeURIComponent(key)}`);
+if(d.status==='error')throw Error(d.message);const r=d.values.reverse().map(a=>({o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}));r.src='Twelve Data '+M.td;return r}catch(e){M.err=e.message}
+const L=[];if(M.fut)L.push(`https://fapi.binance.com/fapi/v1/klines?symbol=${M.fut}`);if(M.sym)L.push('https://data-api.binance.vision/api/v3/klines?symbol='+M.sym,'https://api.binance.com/api/v3/klines?symbol='+M.sym);
+for(const u of L)try{const r=kl(await jget(`${u}&interval=${t}&limit=1000`));r.src='Binance '+(u.includes('fapi')?M.fut+' futures':M.sym);return r}catch(e){}
+if(M.cb){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${t==='15m'?900:3600}`);const r=d.reverse().map(a=>({l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}));r.src='Coinbase '+M.cb;return r}
+throw Error('Could not load prices for '+M.n)}
+
+async function notify(k,r,px){
+const t=`${r.sig} ${MK[k].n}`,b=`The bot says ${r.sig} on the ${tf} chart at ${p(px)}. Suggested stop-loss ${p(px-(r.sig==='BUY'?1:-1)*1.5*r.A)}.`;
+$('#bn').textContent=t+': '+b;$('#bn').hidden=false;if(navigator.vibrate)navigator.vibrate([200,100,200]);
+if(!cfg().nt||!window.Notification||Notification.permission!=='granted')return;
+try{const g=await navigator.serviceWorker.getRegistration();if(g)await g.showNotification(t,{body:b,tag:k+tf,vibrate:[200,100,200]});else new Notification(t,{body:b})}catch(e){}}
+async function check(k){
+const x=await candles(k,tf),b=k==='ETH'?await candles('BTC',tf):null,r=analyze(k,x.slice(0,-1),b&&b.slice(0,-1)),key='n_'+k+tf,old=(ls(key)||'').split('|');
+ls(key,r.sig+'|'+Date.now());
+if(old[0]&&old[0]!==r.sig&&r.sig!=='WAIT'&&Date.now()-old[1]<(tf==='15m'?30:120)*60000)notify(k,r,x[x.length-1].c);
+return[x,b]}
+async function scanAll(){if(!cfg().nt)return;for(const k of Object.keys(MK))if(k!==cur)try{await check(k)}catch(e){}}
+
 function spark(a){const cv=$('#cv'),w=cv.width=cv.clientWidth*2,H=cv.height=160,g=cv.getContext('2d'),lo=Math.min(...a),hi=Math.max(...a);
 g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
 a.forEach((y,i)=>{const X=i/(a.length-1)*w,Y=H-8-(y-lo)/(hi-lo||1)*(H-16);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke()}
 function render(k,x,bx){
-const M=MK[k],live=x[x.length-1].c,r=analyze(k,x.slice(0,-1),bx&&bx.slice(0,-1)),col={BUY:'g',SELL:'r',WAIT:'y'}[r.sig],dir=r.sig==='BUY'?1:-1;
-const C=cfg(),ct=+(C.ct&&C.ct[k])||M.ct,sdist=1.5*r.A,rk=(+C.bal||0)*(+C.risk||0)/100,lots=rk?Math.floor(rk/(sdist*ct)*100)/100:0;
+last=[k,x,bx];
+const M=MK[k],live=x[x.length-1].c,sr=x.src||'',r=analyze(k,x.slice(0,-1),bx&&bx.slice(0,-1)),col={BUY:'g',SELL:'r',WAIT:'y'}[r.sig],dir=r.sig==='BUY'?1:-1;
+const base=+xp[k]||live,C=cfg(),ct=+(C.ct&&C.ct[k])||M.ct,sdist=1.5*r.A,rk=(+C.bal||0)*(+C.risk||0)/100,lots=rk?Math.floor(rk/(sdist*ct)*100)/100:0;
 const lt=!rk?'Add your balance and risk in Settings to see the lot size.':lots<0.01?`Even 0.01 lot risks about $${p(0.01*sdist*ct)}, more than your ${C.risk}% limit. Skip this trade or accept more risk.`:`Lot size ${lots.toFixed(2)} risks about $${p(lots*sdist*ct)} (${C.risk}% of your balance) if the stop is hit.`;
-const lv=r.sig==='WAIT'?'':`<div class="lv"><div><span>Entry (feed price)</span>${p(live)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(live-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(live+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(live+dir*2*sdist)}</div></div><p><b>${lt}</b></p><p class="mu small">In MT5 this is the ${M.ex} symbol. Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.</p>`;
-$('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b></div>
+const lv=r.sig==='WAIT'?'':`<div class="lv"><div><span>${xp[k]?'Entry (your Exness price)':'Entry (feed price)'}</span>${p(base)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(base-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(base+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(base+dir*2*sdist)}</div></div><p><b>${lt}</b></p><p class="mu small">In MT5 this is the ${M.ex} symbol. Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.</p><label class="mu small">Type your Exness price from MT5 to get exact levels<input id="xp" type="number" inputmode="decimal" value="${xp[k]||''}"></label>`;
+$('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b> <span class="mu small">from ${sr}</span></div>
+<div class="api" id="api"></div>
 <div class="sig ${col}">${r.sig==='WAIT'?'Wait':r.sig==='BUY'?'Buy':'Sell'}</div>
 <div class="bar"><i class="${col}" style="width:${r.conf}%"></i></div>
-<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${k==='XAU'&&goldClosed()?'<p class="y"><b>Exness gold is closed for the weekend.</b> Treat this signal as a preview until it reopens, around Sunday 22:00 UTC.</p>':''}${lv}</div>
+<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv}</div>
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
+<div class="card"><b>Past results of the bot</b><p id="btx" class="small"></p></div>
 <div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>
-<details class="card"><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets are based on ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
-spark(x.slice(-80).map(a=>a.c));
-$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. Signals use closed candles, so they change at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(k==='XAU'&&!ls('tdkey')?' Gold uses PAXG (a gold-backed token) as a stand-in. Open Settings to add a Twelve Data key for true XAU/USD.':'')+(k==='XAU'&&gErr?' Twelve Data error: '+gErr+' Using PAXG instead.':'')}
+<details class="card"><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets use ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
+spark(x.slice(-80).map(a=>a.c));showBt();showApi();
+const bk=k+'|'+tf;if(!bt[bk]||Date.now()-bt[bk].ts>6e5)setTimeout(()=>{const q=backtest(k,x.slice(0,-1),bx&&bx.slice(0,-1));q.ts=Date.now();bt[bk]=q;showBt()},50);
+$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':/EURUSDT/.test(sr)?' EUR/USDT is used as a stand-in for EUR/USD.':'')+(M.td&&!ls('tdkey')?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' Twelve Data said: '+M.err+' Using Binance instead.':'')}
 async function load(){const my=++tok;$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...';
-try{const x=await candles(cur,tf),b=cur==='ETH'?await candles('BTC',tf):null;if(my===tok)render(cur,x,b)}
+try{const[x,b]=await check(cur);if(my===tok)render(cur,x,b)}
 catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then tap Refresh.'}
 finally{if(my===tok){$('#rf').disabled=false;$('#rf').textContent='Refresh'}}}
 function sel(){document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tf))}
 $('#mk').innerHTML=Object.keys(MK).map(k=>`<button data-k="${k}">${MK[k].n}</button>`).join('');
 $('#tfs').innerHTML=['15m','1h'].map(t=>`<button data-t="${t}">${t}</button>`).join('');
+$('#cts').innerHTML=Object.keys(MK).map(k=>`<label>${MK[k].ex} units per 1.00 lot<input id="c_${k}" type="number" inputmode="decimal"></label>`).join('');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!(b.dataset.k||b.dataset.t))return;if(b.dataset.k)cur=b.dataset.k;if(b.dataset.t)tf=b.dataset.t;sel();$('#out').innerHTML='';load()});
-const cfg=()=>{try{return JSON.parse(ls('cfg')||'{}')}catch(e){return{}}};
-const goldClosed=()=>{const d=new Date(),w=d.getUTCDay(),h=d.getUTCHours();return w===6||(w===5&&h>=22)||(w===0&&h<22)};
+document.addEventListener('change',e=>{if(e.target.id==='xp'&&last){xp[cur]=+e.target.value||0;render(...last)}});
 $('#rf').onclick=load;
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;$('#c1').value=c.BTC||MK.BTC.ct;$('#c2').value=c.ETH||MK.ETH.ct;$('#c3').value=c.XAU||MK.XAU.ct;$('#tdk').value=ls('tdkey')||'';$('#dl').showModal()};
-$('#sv').onclick=()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,ct:{BTC:+$('#c1').value||1,ETH:+$('#c2').value||1,XAU:+$('#c3').value||100}}));ls('tdkey',$('#tdk').value.trim());$('#dl').close();load()};
-setInterval(()=>{if(!document.hidden)load()},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});sel();load();
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#tdk').value=ls('tdkey')||'';$('#nt').checked=!!C.nt;$('#dl').showModal()};
+$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkey',$('#tdk').value.trim());
+if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
+if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent='Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.';$('#bn').hidden=false}
+$('#dl').close();load()};
+setInterval(showApi,1000);
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+setInterval(()=>{if(document.hidden&&!cfg().nt)return;load();if(++tick%4===0)scanAll()},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});sel();load();
 </script></body></html>
