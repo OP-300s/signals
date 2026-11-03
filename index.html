@@ -36,6 +36,7 @@ dialog input:not([type=checkbox]),dialog select,#xp{display:block;width:100%;fon
 dialog{max-height:88vh;overflow:auto}
 dialog h3{font-size:16px;margin:18px 0 4px;padding-top:14px;border-top:1px solid var(--bd)}
 dialog h3:first-child{border:0;margin-top:0;padding-top:0}
+#mk{display:grid;grid-template-columns:1fr 1fr}#mk button{padding:18px 8px;font-weight:600}
 </style></head><body>
 <h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
 <div id="bn" class="bn" hidden onclick="this.hidden=true"></div>
@@ -51,6 +52,10 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <h3>Notifications</h3>
 <div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
 <div class="mu small">Only for these markets:</div><div id="nms"></div>
+<div class="mu small">Only for these timeframes:</div><div id="ntfs"></div>
+<h3>Refresh</h3>
+<div class="ck"><input type="checkbox" id="ar"><span>Auto-refresh every 7 seconds</span></div>
+<p class="mu small">When off, the bot refreshes once a minute. Gold and silver use your Twelve Data limit (8 per minute, 800 per day). When it runs out, the bot uses Binance prices instead.</p>
 <h3>Appearance</h3>
 <label>Theme<select id="thm"><option value="auto">Auto (follow my phone)</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
 <button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></dialog>
@@ -62,7 +67,7 @@ BTC:{n:'Bitcoin',ex:'BTCUSD',ct:1,sym:'BTCUSDT',cb:'BTC-USD',kind:'BTC',strat:'M
 ETH:{n:'Ethereum',ex:'ETHUSD',ct:1,sym:'ETHUSDT',cb:'ETH-USD',kind:'ETH',strat:'Breakout plus strength versus Bitcoin',max:8,thr:4,q:.12,d:'Ethereum often breaks out of quiet ranges and follows Bitcoin. It scores Bollinger band breakouts, MACD, trend, how ETH is doing against BTC and an RSI extreme guard.'},
 XAU:{n:'Gold',ex:'XAUUSD',ct:100,td:'XAU/USD',fut:'XAUUSDT',sym:'PAXGUSDT',kind:'XAU',wk:1,strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.04,d:'Gold moves in ranges more than crypto, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic). A 50/200 EMA trend filter weakens calls that fight the main trend.'},
 XAG:{n:'Silver',ex:'XAGUSD',ct:5000,td:'XAG/USD',fut:'XAGUSDT',kind:'XAU',wk:1,strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.08,d:'Silver swings in ranges like gold but harder, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic), weakened when fighting the 50/200 EMA trend.'}};
-let cur='BTC',tf='15m',tok=0,last=null,tick=0;const xp={},bt={};
+let cur='BTC',tf='15m',tok=0,last=null,tick=0,tdOff=0,busy=0,dOpen=false;const xp={},bt={},cache={};
 
 const ema=(a,n)=>{const k=2/(n+1);let q=a[0];return a.map((v,i)=>i?(q=v*k+q*(1-k)):v)};
 const sma=(a,n,i)=>{let s=0;for(let j=i-n+1;j<=i;j++)s+=a[j];return s/n};
@@ -73,6 +78,7 @@ const p=n=>{const d=Math.abs(n)<10?5:2;return n.toLocaleString(undefined,{minimu
 const cfg=()=>{try{return JSON.parse(ls('cfg')||'{}')}catch(e){return{}}};
 const tdLog=[],tdCount=()=>{const t=Date.now();while(tdLog.length&&t-tdLog[0]>60000)tdLog.shift();return tdLog.length};
 const showApi=()=>{const e=$('#api');if(!e)return;const n=tdCount();e.textContent='API '+n+'/8';e.className='api '+(n>=8?'r':n>=6?'y':'')};
+const nTf=t=>{const a=cfg().ntf;return !a||a.includes(t)};
 const nOn=k=>{const n=cfg().nm;return !n||n[k]!==false};
 const applyTheme=()=>{const m=cfg().th||'auto';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m};
 const closed=()=>{const d=new Date(),w=d.getUTCDay(),h=d.getUTCHours();return w===6||(w===5&&h>=22)||(w===0&&h<22)};
@@ -120,27 +126,37 @@ const row=(k,z)=>`${MK[k].n}: ${z.n} calls, ${Math.round(z.win*100)}% in profit`
 e.innerHTML=!q?'Checking past results...':!q.n?'The bot made no Buy or Sell calls in this period.':`On the ${tf} chart over the last ${Math.round(q.days)} days, the bot made <b>${q.n}</b> Buy or Sell calls. If you had closed each one after 8 candles, <b>${Math.round(q.win*100)}%</b> would have been in profit, with an average move of ${q.avg>=0?'+':''}${q.avg.toFixed(2)} ATR per call, before spread and fees. ${q.n<10?'That is too few calls to trust this number.':q.win<.5||q.avg<=0?'Past results are weak here, so treat new calls with extra caution.':'Past results are positive here, but the future can differ.'}`+(Object.keys(bt).filter(z=>z.endsWith('|'+tf)).length>1?'<p class="mu small">'+Object.keys(bt).filter(z=>z.endsWith('|'+tf)).map(z=>row(z.split('|')[0],bt[z])).join('<br>')+'</p>':'')}
 
 async function jget(u){const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
-const kl=d=>d.map(a=>({o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}));
-async function candles(k,t){
-const M=MK[k],key=ls('tdkey');M.err='';
-if(M.td&&key&&tdCount()>=8)M.err='Minute limit of 8 reached.';else if(M.td&&key)try{tdLog.push(Date.now());showApi();const d=await jget(`https://api.twelvedata.com/time_series?symbol=${M.td}&interval=${t==='15m'?'15min':'1h'}&outputsize=500&apikey=${encodeURIComponent(key)}`);
-if(d.status==='error')throw Error(d.message);const r=d.values.reverse().map(a=>({o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}));r.src='Twelve Data '+M.td;return r}catch(e){M.err=e.message}
-const L=[];if(M.fut)L.push(`https://fapi.binance.com/fapi/v1/klines?symbol=${M.fut}`);if(M.sym)L.push('https://data-api.binance.vision/api/v3/klines?symbol='+M.sym,'https://api.binance.com/api/v3/klines?symbol='+M.sym);
-for(const u of L)try{const r=kl(await jget(`${u}&interval=${t}&limit=1000`));r.src='Binance '+(u.includes('fapi')?M.fut+' futures':M.sym);return r}catch(e){}
-if(M.cb){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${t==='15m'?900:3600}`);const r=d.reverse().map(a=>({l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}));r.src='Coinbase '+M.cb;return r}
+const kl=d=>d.map(a=>({t:a[0],o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}));
+const merge=(o,n)=>{const m=new Map(o.map(z=>[z.t,z]));n.forEach(z=>m.set(z.t,z));return[...m.values()].sort((a,b)=>a.t<b.t?-1:1).slice(-1000)};
+async function grab(k,t,only){
+const M=MK[k],key=ls('tdkey'),n=only?5:1000,A=[];M.err='';
+if(M.td&&key&&Date.now()>tdOff)A.push(['td','Twelve Data '+M.td,async()=>{
+if(tdCount()>=8){M.err='Minute limit of 8 reached.';throw 0}
+tdLog.push(Date.now());showApi();
+const d=await jget(`https://api.twelvedata.com/time_series?symbol=${M.td}&interval=${t==='15m'?'15min':'1h'}&outputsize=${only?3:500}&apikey=${encodeURIComponent(key)}`);
+if(d.status==='error'){tdOff=Date.now()+6e5;M.err=d.message;throw 0}
+return d.values.reverse().map(a=>({t:a.datetime,o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}))}]);
+if(M.fut)A.push(['fut','Binance '+M.fut+' futures',async()=>kl(await jget(`https://fapi.binance.com/fapi/v1/klines?symbol=${M.fut}&interval=${t}&limit=${n}`))]);
+if(M.sym)A.push(['spot','Binance '+M.sym,async()=>{for(const h of ['https://data-api.binance.vision','https://api.binance.com'])try{return kl(await jget(`${h}/api/v3/klines?symbol=${M.sym}&interval=${t}&limit=${n}`))}catch(e){}throw 0}]);
+if(M.cb)A.push(['cb','Coinbase '+M.cb,async()=>(await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${t==='15m'?900:3600}`)).reverse().map(a=>({t:a[0],l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}))]);
+for(const[via,src,fn]of A){if(only&&via!==only)continue;try{return{a:await fn(),via,src}}catch(e){if(via==='td'&&e){tdOff=Date.now()+3e5;M.err=M.err||e.message}}}
 throw Error('Could not load prices for '+M.n)}
+async function candles(k,t,light){
+const ck=k+'|'+t,c0=cache[ck];
+if(light&&c0&&Date.now()-c0.full<6e5)try{const r=await grab(k,t,c0.via),a=merge(c0.a,r.a);a.src=c0.src;cache[ck]={...c0,a};return a}catch(e){}
+const r=await grab(k,t);r.a.src=r.src;cache[ck]={a:r.a,via:r.via,src:r.src,full:Date.now()};return r.a}
 
-async function notify(k,r,px){
-const t=`${r.sig} ${MK[k].n}`,b=`The bot says ${r.sig} on the ${tf} chart at ${p(px)}. Suggested stop-loss ${p(px-(r.sig==='BUY'?1:-1)*1.5*r.A)}.`;
+async function notify(k,r,px,tt){
+const t=`${r.sig} ${MK[k].n}`,b=`The bot says ${r.sig} on the ${tt} chart at ${p(px)}. Suggested stop-loss ${p(px-(r.sig==='BUY'?1:-1)*1.5*r.A)}.`;
 $('#bn').textContent=t+': '+b;$('#bn').hidden=false;if(navigator.vibrate)navigator.vibrate([200,100,200]);
 if(!cfg().nt||!window.Notification||Notification.permission!=='granted')return;
-try{const g=await navigator.serviceWorker.getRegistration();if(g)await g.showNotification(t,{body:b,tag:k+tf,vibrate:[200,100,200]});else new Notification(t,{body:b})}catch(e){}}
-async function check(k){
-const x=await candles(k,tf),b=k==='ETH'?await candles('BTC',tf):null,r=analyze(k,x.slice(0,-1),b&&b.slice(0,-1)),key='n_'+k+tf,old=(ls(key)||'').split('|');
+try{const g=await navigator.serviceWorker.getRegistration();if(g)await g.showNotification(t,{body:b,tag:k+tt,vibrate:[200,100,200]});else new Notification(t,{body:b})}catch(e){}}
+async function check(k,t,light){
+const x=await candles(k,t,light),b=k==='ETH'?await candles('BTC',t,light):null,r=analyze(k,x.slice(0,-1),b&&b.slice(0,-1)),key='n_'+k+t,old=(ls(key)||'').split('|');
 ls(key,r.sig+'|'+Date.now());
-if(cfg().nt&&nOn(k)&&old[0]&&old[0]!==r.sig&&r.sig!=='WAIT'&&Date.now()-old[1]<(tf==='15m'?30:120)*60000)notify(k,r,x[x.length-1].c);
+if(cfg().nt&&nOn(k)&&nTf(t)&&old[0]&&old[0]!==r.sig&&r.sig!=='WAIT'&&Date.now()-old[1]<(t==='15m'?30:120)*60000)notify(k,r,x[x.length-1].c,t);
 return[x,b]}
-async function scanAll(){if(!cfg().nt)return;for(const k of Object.keys(MK))if(k!==cur&&nOn(k))try{await check(k)}catch(e){}}
+async function scanAll(){if(!cfg().nt)return;for(const k of Object.keys(MK))if(nOn(k))for(const t of ['15m','1h'])if(nTf(t)&&!(k===cur&&t===tf))try{await check(k,t,true)}catch(e){}}
 
 function spark(a){const cv=$('#cv'),w=cv.width=cv.clientWidth*2,H=cv.height=160,g=cv.getContext('2d'),lo=Math.min(...a),hi=Math.max(...a);
 g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
@@ -159,30 +175,33 @@ $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
 <div class="card"><b>Past results of the bot</b><p id="btx" class="small"></p></div>
 <div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>
-<details class="card"><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets use ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
+<details class="card"${dOpen?' open':''}><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets use ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
 spark(x.slice(-80).map(a=>a.c));showBt();showApi();
 const bk=k+'|'+tf;if(!bt[bk]||Date.now()-bt[bk].ts>6e5)setTimeout(()=>{const q=backtest(k,x.slice(0,-1),bx&&bx.slice(0,-1));q.ts=Date.now();bt[bk]=q;showBt()},50);
 $('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':'')+(M.td&&!ls('tdkey')?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' Twelve Data said: '+M.err+' Using Binance instead.':'')}
-async function load(){const my=++tok;$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...';
-try{const[x,b]=await check(cur);if(my===tok)render(cur,x,b)}
+async function load(auto,full){if(auto&&busy)return;busy=1;const my=++tok;
+if(!auto){$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...'}
+try{const[x,b]=await check(cur,tf,!full);if(my===tok&&!(auto&&document.activeElement&&document.activeElement.id==='xp'))render(cur,x,b)}
 catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then tap Refresh.'}
-finally{if(my===tok){$('#rf').disabled=false;$('#rf').textContent='Refresh'}}}
+finally{busy=0;if(my===tok){$('#rf').disabled=false;$('#rf').textContent='Refresh'}}}
 function sel(){document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tf))}
-$('#mk').innerHTML=Object.keys(MK).map(k=>`<button data-k="${k}">${MK[k].n}</button>`).join('');
+$('#mk').innerHTML=['XAU','XAG','BTC','ETH'].map(k=>`<button data-k="${k}">${MK[k].n}</button>`).join('');
 $('#tfs').innerHTML=['15m','1h'].map(t=>`<button data-t="${t}">${t}</button>`).join('');
 $('#cts').innerHTML=Object.keys(MK).map(k=>`<label>${MK[k].ex} units per 1.00 lot<input id="c_${k}" type="number" inputmode="decimal"></label>`).join('');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!(b.dataset.k||b.dataset.t))return;if(b.dataset.k)cur=b.dataset.k;if(b.dataset.t)tf=b.dataset.t;sel();$('#out').innerHTML='';load()});
 document.addEventListener('change',e=>{if(e.target.id==='xp'&&last){xp[cur]=+e.target.value||0;render(...last)}});
 $('#nms').innerHTML=Object.keys(MK).map(k=>`<div class="ck"><input type="checkbox" id="m_${k}"><span>${MK[k].n}</span></div>`).join('');
+$('#ntfs').innerHTML=['15m','1h'].map(t=>`<div class="ck"><input type="checkbox" id="t_${t}"><span>${t}</span></div>`).join('');
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{applyTheme();if(last)render(...last)});
-$('#rf').onclick=load;
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#tdk').value=ls('tdkey')||'';$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'auto';$('#dl').showModal()};
-$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,th:$('#thm').value,nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkey',$('#tdk').value.trim());
+document.addEventListener('toggle',e=>{if(e.target.closest&&e.target.closest('#out'))dOpen=e.target.open},true);
+$('#rf').onclick=()=>load(0,1);
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#tdk').value=ls('tdkey')||'';$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'auto';['15m','1h'].forEach(t=>$('#t_'+t).checked=nTf(t));$('#ar').checked=C.ar!==false;$('#dl').showModal()};
+$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,th:$('#thm').value,ntf:['15m','1h'].filter(t=>$('#t_'+t).checked),ar:$('#ar').checked,nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkey',$('#tdk').value.trim());
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
 if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent='Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.';$('#bn').hidden=false}
 $('#dl').close();applyTheme();load()};
 setInterval(showApi,1000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-setInterval(()=>{if(document.hidden&&!cfg().nt)return;load();if(++tick%4===0)scanAll()},60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});applyTheme();sel();load();
+setInterval(()=>{tick++;if(document.hidden&&!cfg().nt)return;if(cfg().ar!==false||tick%9===0)load(1);if(tick%34===0)scanAll()},7000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)load(1)});applyTheme();sel();load();
 </script></body></html>
