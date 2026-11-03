@@ -20,7 +20,7 @@ button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);bor
 .card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:12px 0}
 .mu{color:var(--mu)}.small{font-size:13px}
 .sig{font-size:64px;font-weight:800;letter-spacing:-2px;line-height:1.05;margin:6px 0}
-.api{margin-top:14px;font-size:13px;color:var(--mu)}
+.api{text-align:right;font-size:13px;line-height:1.5;color:var(--mu)}
 .g{color:var(--g)}.r{color:var(--r)}.y{color:var(--y)}
 .bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin:8px 0}
 .bar i{display:block;height:100%}.bar i.g{background:var(--g)}.bar i.r{background:var(--r)}.bar i.y{background:var(--y)}
@@ -40,17 +40,28 @@ dialog{max-height:88vh;overflow:auto}
 dialog h3{font-size:16px;margin:18px 0 4px;padding-top:14px;border-top:1px solid var(--bd)}
 dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 #mk{display:grid;grid-template-columns:1fr 1fr}#mk button{padding:18px 8px;font-weight:600}
+.row{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:14px}.row .sig{margin:0}
+.lot{margin-top:14px}.lot span{display:block;color:var(--mu);font-size:13px}.lot b{font-size:34px;line-height:1.1}.lot p{margin:2px 0 0}
+.cm{margin-top:14px}.cm span{font-weight:700;font-size:18px}.cm p{margin:4px 0 0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ctr{text-align:center}
+#gt select{display:block;width:100%;font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+.goog-te-gadget{font-size:0!important}iframe.skiptranslate,.goog-te-banner-frame{display:none!important}body{top:0!important;position:static!important}
 </style></head><body>
 <h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
 <div id="bn" class="bn" hidden onclick="this.hidden=true"></div>
 <div class="tabs" id="mk"></div><div class="tabs sm" id="tfs"></div>
 <div id="out"></div>
 <p id="st" class="mu small"></p>
-<dialog id="dl"><h3>Exness setup</h3>
-<label>Account balance (USD)<input id="bal" type="number" inputmode="decimal"></label>
-<label>Risk per trade (%)<input id="risk" type="number" inputmode="decimal"></label>
-<div id="cts"></div>
-<label>Twelve Data key for true gold and silver prices (optional)<input id="tdk" type="text"></label>
+<dialog id="dl"><h3 class="ctr">Custom setup</h3>
+<div class="g2"><label>Account balance (USD)<input id="bal" type="number" inputmode="decimal"></label>
+<label>Risk per trade (%)<input id="risk" type="number" inputmode="decimal"></label></div>
+<div id="cts" class="g2"></div>
+<label>Twelve Data key (optional)<input id="tdk" type="text"></label>
+<div class="g2"><label>API calls per minute<input id="lm" type="number" inputmode="numeric"></label>
+<label>API calls per day<input id="ld" type="number" inputmode="numeric"></label></div>
+<details><summary>More API options (4 for each market)</summary>
+<p class="mu small">Paste any API address that returns candles and put your key inside the address. You can use {tf} for 15m or 1h, {tfd} for 15min or 1h, {min} for 15 or 60, {limit} for the number of candles, and {from} and {to} for start and end time in seconds. The bot tries your addresses in order, then Twelve Data, then Binance.</p>
+<div id="apis"></div></details>
 <p class="mu small">Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
 <h3>Notifications</h3>
 <div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
@@ -58,6 +69,9 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <div class="mu small">Only for these timeframes:</div><div id="ntfs"></div>
 <h3>Appearance</h3>
 <label>Theme<select id="thm"><option value="auto">Auto (follow my phone)</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+<h3>Language</h3>
+<div id="gt"></div>
+<p class="mu small">Translates the whole app with Google Translate. If no list appears, Google Translate may be blocked in your country.</p>
 <button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></dialog>
 <p class="mu small">Not financial advice. The bot follows fixed rules and can be wrong. Never risk money you cannot afford to lose.</p>
 <script>
@@ -76,8 +90,13 @@ function rsi(c,n=14){const r=Array(c.length).fill(50);let g=0,l=0;for(let i=1;i<
 function atr(x,n=14){const r=[];let a=0;x.forEach((k,i)=>{const t=i?Math.max(k.h-k.l,Math.abs(k.h-x[i-1].c),Math.abs(k.l-x[i-1].c)):k.h-k.l;a=i<n?(a*i+t)/(i+1):(a*(n-1)+t)/n;r.push(a)});return r}
 const p=n=>{const d=Math.abs(n)<10?5:2;return n.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d})};
 const cfg=()=>{try{return JSON.parse(ls('cfg')||'{}')}catch(e){return{}}};
-const tdLog=[],tdCount=()=>{const t=Date.now();while(tdLog.length&&t-tdLog[0]>60000)tdLog.shift();return tdLog.length};
-const showApi=()=>{const e=$('#api');if(!e)return;const n=tdCount();e.textContent='API '+n+'/8';e.className='api '+(n>=8?'r':n>=6?'y':'')};
+const aLog=[];
+const aMin=()=>{const t=Date.now();while(aLog.length&&t-aLog[0]>6e4)aLog.shift();return aLog.length};
+const aDay=()=>{const d=new Date().toISOString().slice(0,10),q=(ls('apiday')||'').split('|');return q[0]===d?+q[1]:0};
+const aHit=()=>{aLog.push(Date.now());ls('apiday',new Date().toISOString().slice(0,10)+'|'+(aDay()+1));showApi()};
+const lim=()=>({m:+cfg().lm||8,d:+cfg().ld||800});
+const lvl=(n,L,r)=>n>=L?'r':n>=L*r?'y':'g';
+const showApi=()=>{const e=$('#api');if(!e)return;const L=lim(),m=aMin(),d=aDay();e.innerHTML=`Daily API <b class="${lvl(d,L.d,.625)}">${d}/${L.d}</b><br>Minute API <b class="${lvl(m,L.m,.75)}">${m}/${L.m}</b>`};
 const nTf=t=>{const a=cfg().ntf;return !a||a.includes(t)};
 const nOn=k=>{const n=cfg().nm;return !n||n[k]!==false};
 const applyTheme=()=>{const m=cfg().th||'auto';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m};
@@ -93,7 +112,7 @@ if(M.kind==='BTC'){
 add('Trend',tr());add('Momentum (MACD)',mc());
 add('RSI '+f(R),R>70?[-1,'RSI is above 70: overheated, a pullback is likely.']:R>=55?[1,'RSI is between 55 and 70: healthy bullish strength.']:R>=45?[0,'RSI is neutral (45 to 55).']:R>=30?[-1,'RSI is between 30 and 45: bearish pressure.']:[1,'RSI is below 30: oversold, a bounce is possible.']);
 const vr=v[i]/sma(v,20,i),gr=c[i]>x[i].o;
-add('Volume',vr>1.5?[gr?1:-1,`Volume is ${f(vr,1)}x normal on a ${gr?'green':'red'} candle: ${gr?'buyers':'sellers'} are pushing.`]:[0,`Volume is ${f(vr,1)}x normal: no strong confirmation.`])}
+add('Volume',vr>1.5?[gr?1:-1,`Volume is ${f(vr,1)}x normal on a ${gr?'green':'red'} candle: ${gr?'buyers':'sellers'} are pushing.`]:[0,isFinite(vr)?`Volume is ${f(vr,1)}x normal: no strong confirmation.`:'Volume data is not available from this source.'])}
 if(M.kind==='ETH'){
 let lc=0;const bw=j=>4*sd(c,20,j)/sma(c,20,j);for(let j=i-99;j<i;j++)if(bw(j)<bw(i))lc++;
 add('Breakout (Bollinger)',px>bu?[2,'Price closed above the upper band: upside breakout.']:px<bl?[-2,'Price closed below the lower band: downside breakout.']:pb>.8?[1,'Price is pushing against the upper band.']:pb<.2?[-1,'Price is pressing the lower band.']:[0,'Price is inside the bands: no breakout yet.']);
@@ -115,6 +134,32 @@ if(quiet&&sig!=='WAIT'){sig='WAIT';note='The market is too quiet right now: expe
 else if(sig==='WAIT')note=`Score ${sc>0?'+':''}${sc} has not reached ±${M.thr}. The factors are mixed or weak, so waiting is the better move.`;
 return{sig,sc,note,F,A,conf:Math.round(Math.min(1,Math.abs(sc)/M.max)*100)}}
 
+const px0={};
+const paper=()=>{try{const q=JSON.parse(ls('paper')||'null');if(q)return q}catch(e){}const b=+cfg().bal||10000;return{b0:b,b,open:{},hist:[]}};
+function paperStep(k,x,r,fresh){
+const P=paper(),ct=+((cfg().ct||{})[k])||MK[k].ct,px=x[x.length-1].c;px0[k]=px;let pos=P.open[k];
+const close=(price,why)=>{const pnl=pos.d*(price-pos.e)*pos.l*ct-px*0.0003*pos.l*ct;P.b+=pnl;P.hist.push({k,d:pos.d,e:pos.e,x:price,l:pos.l,pnl,why,t:Date.now()});delete P.open[k];pos=null};
+if(pos){
+for(const c of x){if((c.t||0)<=pos.t)continue;
+if(pos.d>0?c.l<=pos.s:c.h>=pos.s){close(pos.s,'stop-loss hit');break}
+if(pos.d>0?c.h>=pos.g:c.l<=pos.g){close(pos.g,'target hit');break}}
+if(pos&&(pos.d>0?px<=pos.s:px>=pos.s))close(pos.s,'stop-loss hit');
+if(pos&&fresh&&r.sig!=='WAIT'&&(r.sig==='BUY'?1:-1)!==pos.d)close(px,'call reversed')}
+if(!pos&&fresh&&r.sig!=='WAIT'){const d=r.sig==='BUY'?1:-1,sd=1.5*r.A,l=Math.floor(P.b*(+cfg().risk||1)/100/(sd*ct)*100)/100;
+if(l>=0.01)P.open[k]={d,e:px,s:px-d*sd,g:px+d*2*sd,l,t:Date.now()}}
+P.hist=P.hist.slice(-100);ls('paper',JSON.stringify(P))}
+function showPaper(){const e=$('#pp');if(!e)return;const P=paper(),H=P.hist,n=H.length,w=H.filter(z=>z.pnl>0).length,ops=Object.keys(P.open),sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
+const fl=ops.reduce((q,k)=>{const o=P.open[k],ct=+((cfg().ct||{})[k])||MK[k].ct;return q+o.d*((px0[k]||o.e)-o.e)*o.l*ct},0),eq=P.b+fl;
+e.innerHTML=`<b>Paper market</b><div class="mu small">A practice account with pretend money on live prices. The bot trades by itself using your Settings and you can only watch.</div>
+<div class="lv"><div><span>Balance</span>$${P.b.toFixed(2)}</div><div><span>Profit or loss</span><b class="${eq>=P.b0?'g':'r'}">${sg(eq-P.b0)}</b></div><div><span>Win rate</span>${n?Math.round(w/n*100):0}%</div><div><span>Loss rate</span>${n?Math.round((n-w)/n*100):0}%</div></div>
+<div class="mu small" style="margin-top:8px">${n} closed trades</div>
+${ops.length?'<div class="mu small" style="margin-top:8px">Open now</div>'+ops.map(k=>{const o=P.open[k];return `<div class="small">${MK[k].n} ${o.d>0?'Buy':'Sell'} ${o.l.toFixed(2)} lot at ${p(o.e)}</div>`}).join(''):''}
+${n?'<div class="mu small" style="margin-top:8px">History</div>'+H.slice(-10).reverse().map(z=>`<div class="small">${MK[z.k].n} ${z.d>0?'Buy':'Sell'} ${z.l.toFixed(2)} lot: <b class="${z.pnl>0?'g':'r'}">${sg(z.pnl)}</b> (${z.why})</div>`).join(''):''}
+<button id="pr" class="small" style="margin-top:10px">Reset paper account</button>`}
+function comment(r,dir){
+const S=r.F.filter(z=>z.s*dir>0).sort((a,b)=>Math.abs(b.s)-Math.abs(a.s)),O=r.F.filter(z=>z.s*dir<0);
+if(r.sig==='WAIT'){const t=r.F.slice().sort((a,b)=>Math.abs(b.s)-Math.abs(a.s))[0];return r.note+(t&&t.s?' The strongest factor is: '+t.t:'')}
+return `${r.sig==='BUY'?'Buy':'Sell'} call. ${S.slice(0,2).map(z=>z.t).join(' ')}${O.length?' Be careful: '+O[0].t:''} The stop-loss is ${p(1.5*r.A)} from your entry. If price reaches Target 1, you could close part of the trade.`}
 function backtest(k,x,bx){
 const H=8,out=[];let prev='';
 for(let i=210;i<x.length-H;i++){
@@ -126,19 +171,38 @@ const row=(k,z)=>`${MK[k].n}: ${z.n} calls, ${Math.round(z.win*100)}% in profit`
 e.innerHTML=!q?'Checking past results...':!q.n?'The bot made no Buy or Sell calls in this period.':`On the ${tf} chart over the last ${Math.round(q.days)} days, the bot made <b>${q.n}</b> Buy or Sell calls. If you had closed each one after 8 candles, <b>${Math.round(q.win*100)}%</b> would have been in profit, with an average move of ${q.avg>=0?'+':''}${q.avg.toFixed(2)} ATR per call, before spread and fees. ${q.n<10?'That is too few calls to trust this number.':q.win<.5||q.avg<=0?'Past results are weak here, so treat new calls with extra caution.':'Past results are positive here, but the future can differ.'}`+(Object.keys(bt).filter(z=>z.endsWith('|'+tf)).length>1?'<p class="mu small">'+Object.keys(bt).filter(z=>z.endsWith('|'+tf)).map(z=>row(z.split('|')[0],bt[z])).join('<br>')+'</p>':'')}
 
 async function jget(u){const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
-const kl=d=>d.map(a=>({o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}));
+const kl=d=>d.map(a=>({t:a[0],o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}));
+function parseAny(j){
+let a;
+if(j&&Array.isArray(j.c)&&Array.isArray(j.h)&&Array.isArray(j.o))a=j.c.map((_,i)=>({t:j.t?j.t[i]*1000:0,o:+j.o[i],h:+j.h[i],l:+j.l[i],c:+j.c[i],v:j.v?+j.v[i]:0}));
+else{
+let arr=Array.isArray(j)?j:null;
+if(!arr&&j&&typeof j==='object'){const k=Object.keys(j).find(z=>Array.isArray(j[z])&&j[z].length>1);if(k)arr=j[k]}
+if(!arr&&j&&typeof j==='object'){const k=Object.keys(j).find(z=>/time series/i.test(z));if(k)arr=Object.keys(j[k]).map(d=>({datetime:d,...j[k][d]}))}
+if(!arr)throw Error('Unknown data format');
+const tm=v=>typeof v==='number'?(v>1e12?v:v*1000):(Date.parse(String(v).includes('T')?v:String(v).replace(' ','T')+'Z')||0);
+a=arr.map(r=>{if(Array.isArray(r))return{t:tm(r[0]),o:+r[1],h:+r[2],l:+r[3],c:+r[4],v:+r[5]||0};
+const m=r.mid||r.bid||r,g=(...q)=>{for(const z of q)if(m[z]!==undefined)return+m[z]};
+return{t:tm(r.t??r.time??r.timestamp??r.datetime??r.date??r.startTime??0),o:g('o','open','1. open'),h:g('h','high','2. high'),l:g('l','low','3. low'),c:g('c','close','4. close'),v:g('v','volume','5. volume')||0}})}
+a=a.filter(z=>[z.o,z.h,z.l,z.c].every(Number.isFinite)&&z.c>0);
+if(a.length<30)throw Error('Too few candles');
+if(a[0].t>a[a.length-1].t)a.reverse();
+return a}
 async function candles(k,t,n=1000){
-const M=MK[k],key=ls('tdkey');M.err='';
+const M=MK[k],key=ls('tdkey'),C=(cfg().api||{})[k]||[],L=lim(),mins=t==='15m'?15:60,now=Math.floor(Date.now()/1000),cnt=Math.min(n,500);M.err='';
+for(let i=0;i<C.length;i++){const u0=(C[i]||'').trim();if(!u0)continue;
+if(aMin()>=L.m||aDay()>=L.d){M.err='API limit reached.';break}
+try{aHit();const r=parseAny(await jget(u0.replace(/\{tfd\}/g,t==='15m'?'15min':'1h').replace(/\{tf\}/g,t).replace(/\{min\}/g,mins).replace(/\{limit\}/g,cnt).replace(/\{from\}/g,now-cnt*mins*60).replace(/\{to\}/g,now)));r.src='Custom API '+(i+1);return r}catch(e){M.err='API '+(i+1)+': '+e.message}}
 if(M.td&&key&&Date.now()>tdOff)try{
-if(tdCount()>=8)throw Error('Minute limit of 8 reached.');
-tdLog.push(Date.now());showApi();
-const d=await jget(`https://api.twelvedata.com/time_series?symbol=${M.td}&interval=${t==='15m'?'15min':'1h'}&outputsize=${Math.min(n,500)}&apikey=${encodeURIComponent(key)}`);
+if(aMin()>=L.m||aDay()>=L.d)throw Error('API limit reached.');
+aHit();
+const d=await jget(`https://api.twelvedata.com/time_series?symbol=${M.td}&interval=${t==='15m'?'15min':'1h'}&outputsize=${cnt}&apikey=${encodeURIComponent(key)}`);
 if(d.status==='error'){tdOff=Date.now()+6e5;throw Error(d.message)}
-const r=d.values.reverse().map(a=>({o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}));r.src='Twelve Data '+M.td;return r}catch(e){M.err=e.message}
-const L=[];if(M.fut)L.push(['https://fapi.binance.com/fapi/v1/klines?symbol='+M.fut,'Binance '+M.fut+' futures']);
-if(M.sym)L.push(['https://data-api.binance.vision/api/v3/klines?symbol='+M.sym,'Binance '+M.sym],['https://api.binance.com/api/v3/klines?symbol='+M.sym,'Binance '+M.sym]);
-for(const[u,src]of L)try{const r=kl(await jget(`${u}&interval=${t}&limit=${n}`));r.src=src;return r}catch(e){}
-if(M.cb){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${t==='15m'?900:3600}`);const r=d.reverse().map(a=>({l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}));r.src='Coinbase '+M.cb;return r}
+const r=d.values.reverse().map(a=>({t:Date.parse(a.datetime.replace(' ','T')+'Z')||0,o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}));r.src='Twelve Data '+M.td;return r}catch(e){M.err=e.message}
+const BL=[];if(M.fut)BL.push(['https://fapi.binance.com/fapi/v1/klines?symbol='+M.fut,'Binance '+M.fut+' futures']);
+if(M.sym)BL.push(['https://data-api.binance.vision/api/v3/klines?symbol='+M.sym,'Binance '+M.sym],['https://api.binance.com/api/v3/klines?symbol='+M.sym,'Binance '+M.sym]);
+for(const[u,src]of BL)try{const r=kl(await jget(`${u}&interval=${t}&limit=${n}`));r.src=src;return r}catch(e){}
+if(M.cb){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${t==='15m'?900:3600}`);const r=d.reverse().map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}));r.src='Coinbase '+M.cb;return r}
 throw Error('Could not load prices for '+M.n)}
 
 async function notify(k,r,px,tt){
@@ -149,9 +213,11 @@ try{const g=await navigator.serviceWorker.getRegistration();if(g)await g.showNot
 async function check(k,t,n){
 const x=await candles(k,t,n),b=k==='ETH'?await candles('BTC',t,n):null,r=analyze(k,x.slice(0,-1),b&&b.slice(0,-1)),key='n_'+k+t,old=(ls(key)||'').split('|');
 ls(key,r.sig+'|'+Date.now());
-if(cfg().nt&&nOn(k)&&nTf(t)&&old[0]&&old[0]!==r.sig&&r.sig!=='WAIT'&&Date.now()-old[1]<(t==='15m'?30:120)*60000)notify(k,r,x[x.length-1].c,t);
+const fresh=!!old[0]&&old[0]!==r.sig&&Date.now()-old[1]<(t==='15m'?30:120)*60000;
+if(cfg().nt&&nOn(k)&&nTf(t)&&fresh&&r.sig!=='WAIT')notify(k,r,x[x.length-1].c,t);
+if(t==='15m')paperStep(k,x,r,fresh);
 return[x,b]}
-async function scanAll(){if(!cfg().nt)return;for(const k of Object.keys(MK))if(nOn(k))for(const t of ['15m','1h'])if(nTf(t))try{await check(k,t,300)}catch(e){}}
+async function scanAll(){for(const k of Object.keys(MK))for(const t of ['15m','1h'])if(t==='15m'||(cfg().nt&&nOn(k)&&nTf(t)))try{await check(k,t,300)}catch(e){}showPaper()}
 
 function spark(a){const cv=$('#cv'),w=cv.width=cv.clientWidth*2,H=cv.height=160,g=cv.getContext('2d'),lo=Math.min(...a),hi=Math.max(...a);
 g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
@@ -160,20 +226,22 @@ function render(k,x,bx){
 last=[k,x,bx];
 const M=MK[k],live=x[x.length-1].c,sr=x.src||'',r=analyze(k,x.slice(0,-1),bx&&bx.slice(0,-1)),col={BUY:'g',SELL:'r',WAIT:'y'}[r.sig],dir=r.sig==='BUY'?1:-1;
 const base=+xp[k]||live,C=cfg(),ct=+(C.ct&&C.ct[k])||M.ct,sdist=1.5*r.A,rk=(+C.bal||0)*(+C.risk||0)/100,lots=rk?Math.floor(rk/(sdist*ct)*100)/100:0;
-const lt=!rk?'Add your balance and risk in Settings to see the lot size.':lots<0.01?`Even 0.01 lot risks about $${p(0.01*sdist*ct)}, more than your ${C.risk}% limit. Skip this trade or accept more risk.`:`Lot size ${lots.toFixed(2)} risks about $${p(lots*sdist*ct)} (${C.risk}% of your balance) if the stop is hit.`;
-const lv=r.sig==='WAIT'?'':`<div class="lv"><div><span>${xp[k]?'Entry (your Exness price)':'Entry (feed price)'}</span>${p(base)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(base-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(base+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(base+dir*2*sdist)}</div></div><p><b>${lt}</b></p><p class="mu small">In MT5 this is the ${M.ex} symbol. Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.</p><label class="mu small">Type your Exness price from MT5 to get exact levels<input id="xp" type="number" inputmode="decimal" value="${xp[k]||''}"></label>`;
+const lotb=!rk?`<div class="lot"><span>Lot size</span><b>-</b><p class="mu small">Add your balance and risk in Settings.</p></div>`:lots<0.01?`<div class="lot"><span>Lot size</span><b>0.01</b><p class="mu small">Even the smallest lot risks more than your ${C.risk}% limit.</p></div>`:`<div class="lot"><span>Lot size</span><b>${lots.toFixed(2)}</b></div>`;
+const lv1=r.sig==='WAIT'?'':`<div class="lv"><div><span>${xp[k]?'Entry (your Exness price)':'Entry (feed price)'}</span>${p(base)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(base-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(base+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(base+dir*2*sdist)}</div></div>${lotb}`;
+const lv2=r.sig==='WAIT'?'':`<p class="mu small">In MT5 this is the ${M.ex} symbol. Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.</p><label class="mu small">Type your Exness price from MT5 to get exact levels<input id="xp" type="number" inputmode="decimal" value="${xp[k]||''}"></label>`;
+const cmb=`<div class="cm"><span>Bot comment</span><p>${comment(r,dir)}</p></div>`;
 $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b> <span class="mu small">from ${sr}</span></div>
-<div class="api" id="api"></div>
-<div class="sig ${col}">${r.sig==='WAIT'?'Wait':r.sig==='BUY'?'Buy':'Sell'}</div>
+<div class="row"><div class="sig ${col}">${r.sig==='WAIT'?'Wait':r.sig==='BUY'?'Buy':'Sell'}</div><div class="api" id="api"></div></div>
 <div class="bar"><i class="${col}" style="width:${r.conf}%"></i></div>
-<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv}</div>
+<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv1}${cmb}${lv2}</div>
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
+<div class="card" id="pp"></div>
 <div class="card"><b>Past results of the bot</b><p id="btx" class="small"></p></div>
 <div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>
 <details class="card"${dOpen?' open':''}><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets use ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
-spark(x.slice(-80).map(a=>a.c));showBt();showApi();
+spark(x.slice(-80).map(a=>a.c));showBt();showApi();showPaper();
 const bk=k+'|'+tf;if(!bt[bk]||Date.now()-bt[bk].ts>6e5)setTimeout(()=>{const q=backtest(k,x.slice(0,-1),bx&&bx.slice(0,-1));q.ts=Date.now();bt[bk]=q;showBt()},50);
-$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':'')+(M.td&&!ls('tdkey')?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' Twelve Data said: '+M.err+' Using Binance instead.':'')}
+$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':'')+(M.td&&!ls('tdkey')?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' API problem: '+M.err+' Using the next source.':'')}
 async function load(){const my=++tok;$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...';
 try{const[x,b]=await check(cur,tf);if(my===tok)render(cur,x,b)}
 catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then tap Refresh.'}
@@ -184,17 +252,21 @@ $('#tfs').innerHTML=['15m','1h'].map(t=>`<button data-t="${t}">${t}</button>`).j
 $('#cts').innerHTML=Object.keys(MK).map(k=>`<label>${MK[k].ex} units per 1.00 lot<input id="c_${k}" type="number" inputmode="decimal"></label>`).join('');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!(b.dataset.k||b.dataset.t))return;if(b.dataset.k)cur=b.dataset.k;if(b.dataset.t)tf=b.dataset.t;sel();$('#out').innerHTML='';load()});
 document.addEventListener('change',e=>{if(e.target.id==='xp'&&last){xp[cur]=+e.target.value||0;render(...last)}});
+$('#apis').innerHTML=['XAU','XAG','BTC','ETH'].map(k=>`<div class="mu small" style="margin-top:8px"><b>${MK[k].n}</b></div>`+[1,2,3,4].map(i=>`<input id="a_${k}_${i}" type="text" placeholder="API address ${i}">`).join('')).join('');
 $('#nms').innerHTML=Object.keys(MK).map(k=>`<div class="ck"><input type="checkbox" id="m_${k}"><span>${MK[k].n}</span></div>`).join('');
 $('#ntfs').innerHTML=['15m','1h'].map(t=>`<div class="ck"><input type="checkbox" id="t_${t}"><span>${t}</span></div>`).join('');
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{applyTheme();if(last)render(...last)});
 document.addEventListener('toggle',e=>{if(e.target.closest&&e.target.closest('#out'))dOpen=e.target.open},true);
 $('#rf').onclick=()=>{tdOff=0;load()};
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#tdk').value=ls('tdkey')||'';$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'auto';['15m','1h'].forEach(t=>$('#t_'+t).checked=nTf(t));$('#dl').showModal()};
-$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,th:$('#thm').value,ntf:['15m','1h'].filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkey',$('#tdk').value.trim());
+document.addEventListener('click',e=>{if(e.target.id==='pr'&&confirm('Reset the paper account?')){ls('paper','');showPaper()}});
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#tdk').value=ls('tdkey')||'';$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;Object.keys(MK).forEach(k=>[1,2,3,4].forEach(i=>$('#a_'+k+'_'+i).value=((C.api||{})[k]||[])[i-1]||''));$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'auto';['15m','1h'].forEach(t=>$('#t_'+t).checked=nTf(t));$('#dl').showModal()};
+$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,api:Object.fromEntries(Object.keys(MK).map(k=>[k,[1,2,3,4].map(i=>$('#a_'+k+'_'+i).value.trim())])),th:$('#thm').value,ntf:['15m','1h'].filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkey',$('#tdk').value.trim());
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
 if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent='Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.';$('#bn').hidden=false}
 $('#dl').close();applyTheme();tdOff=0;load();scanAll()};
 setInterval(showApi,1000);
+window.gtInit=()=>new google.translate.TranslateElement({pageLanguage:'en',autoDisplay:false},'gt');
+const gs=document.createElement('script');gs.src='https://translate.google.com/translate_a/element.js?cb=gtInit';gs.async=true;document.head.appendChild(gs);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 setInterval(scanAll,18e4);
 applyTheme();sel();load();scanAll();
