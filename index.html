@@ -129,7 +129,7 @@ async function jget(u){const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.sta
 const kl=d=>d.map(a=>({t:a[0],o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}));
 const merge=(o,n)=>{const m=new Map(o.map(z=>[z.t,z]));n.forEach(z=>m.set(z.t,z));return[...m.values()].sort((a,b)=>a.t<b.t?-1:1).slice(-1000)};
 async function grab(k,t,only){
-const M=MK[k],key=ls('tdkey'),n=only?5:1000,A=[];M.err='';
+const M=MK[k],key=ls('tdkey'),n=only?5:1000,A=[];if(!only)M.err='';
 if(M.td&&key&&Date.now()>tdOff)A.push(['td','Twelve Data '+M.td,async()=>{
 if(tdCount()>=8){M.err='Minute limit of 8 reached.';throw 0}
 tdLog.push(Date.now());showApi();
@@ -194,12 +194,12 @@ $('#nms').innerHTML=Object.keys(MK).map(k=>`<div class="ck"><input type="checkbo
 $('#ntfs').innerHTML=['15m','1h'].map(t=>`<div class="ck"><input type="checkbox" id="t_${t}"><span>${t}</span></div>`).join('');
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{applyTheme();if(last)render(...last)});
 document.addEventListener('toggle',e=>{if(e.target.closest&&e.target.closest('#out'))dOpen=e.target.open},true);
-$('#rf').onclick=()=>load(0,1);
+$('#rf').onclick=()=>{tdOff=0;load(0,1)};
 $('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#tdk').value=ls('tdkey')||'';$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'auto';['15m','1h'].forEach(t=>$('#t_'+t).checked=nTf(t));$('#ar').checked=C.ar!==false;$('#dl').showModal()};
 $('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,th:$('#thm').value,ntf:['15m','1h'].filter(t=>$('#t_'+t).checked),ar:$('#ar').checked,nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkey',$('#tdk').value.trim());
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
 if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent='Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.';$('#bn').hidden=false}
-$('#dl').close();applyTheme();load()};
+$('#dl').close();applyTheme();Object.keys(cache).forEach(z=>delete cache[z]);tdOff=0;load()};
 setInterval(showApi,1000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 setInterval(()=>{tick++;if(document.hidden&&!cfg().nt)return;if(cfg().ar!==false||tick%9===0)load(1);if(tick%34===0)scanAll()},7000);
