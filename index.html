@@ -3,9 +3,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#14181f">
 <title>My Bot</title>
+<script>try{const c=JSON.parse(localStorage.getItem('cfg')||'{}'),m=c.th||'auto';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m}catch(e){}</script>
 <style>
 :root{--bg:#f4f5f2;--cd:#fff;--tx:#1b2430;--mu:#667180;--bd:#dde1e5;--g:#1f8a5b;--r:#c8433a;--y:#b7791f}
-@media(prefers-color-scheme:dark){:root{--bg:#14181f;--cd:#1c222b;--tx:#e9edf2;--mu:#93a0b0;--bd:#2b3340;--g:#3fbf86;--r:#ef6a60;--y:#e0a542}}
+:root[data-theme=dark]{--bg:#14181f;--cd:#1c222b;--tx:#e9edf2;--mu:#93a0b0;--bd:#2b3340;--g:#3fbf86;--r:#ef6a60;--y:#e0a542}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,Roboto,sans-serif;padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom));max-width:560px;margin-inline:auto}
 h1{font-size:20px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
@@ -30,21 +31,28 @@ summary{font-weight:600}
 .bn{background:var(--tx);color:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:600}
 dialog{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:14px;width:min(92vw,420px)}
 dialog label{display:block;margin:10px 0;font-size:14px;color:var(--mu)}
-dialog input:not([type=checkbox]),#xp{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+dialog input:not([type=checkbox]),dialog select,#xp{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
 .ck{display:flex;gap:10px;align-items:center;margin:12px 0}.ck input{width:22px;height:22px}
+dialog{max-height:88vh;overflow:auto}
+dialog h3{font-size:16px;margin:18px 0 4px;padding-top:14px;border-top:1px solid var(--bd)}
+dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 </style></head><body>
 <h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
 <div id="bn" class="bn" hidden onclick="this.hidden=true"></div>
 <div class="tabs" id="mk"></div><div class="tabs sm" id="tfs"></div>
 <div id="out"></div>
 <p id="st" class="mu small"></p>
-<dialog id="dl"><b>Your Exness setup</b>
+<dialog id="dl"><h3>Exness setup</h3>
 <label>Account balance (USD)<input id="bal" type="number" inputmode="decimal"></label>
 <label>Risk per trade (%)<input id="risk" type="number" inputmode="decimal"></label>
 <div id="cts"></div>
-<label>Twelve Data key for true gold, silver and EUR/USD prices (optional)<input id="tdk" type="text"></label>
-<div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
+<label>Twelve Data key for true gold and silver prices (optional)<input id="tdk" type="text"></label>
 <p class="mu small">Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
+<h3>Notifications</h3>
+<div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
+<div class="mu small">Only for these markets:</div><div id="nms"></div>
+<h3>Appearance</h3>
+<label>Theme<select id="thm"><option value="auto">Auto (follow my phone)</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
 <button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></dialog>
 <p class="mu small">Not financial advice. The bot follows fixed rules and can be wrong. Never risk money you cannot afford to lose.</p>
 <script>
@@ -53,8 +61,7 @@ const MK={
 BTC:{n:'Bitcoin',ex:'BTCUSD',ct:1,sym:'BTCUSDT',cb:'BTC-USD',kind:'BTC',strat:'Momentum trend-follower',max:6,thr:3,q:.1,d:'Bitcoin trends hard once it moves, so this bot rides momentum. It scores four things: trend (EMA 20 and 50), MACD, RSI and volume.'},
 ETH:{n:'Ethereum',ex:'ETHUSD',ct:1,sym:'ETHUSDT',cb:'ETH-USD',kind:'ETH',strat:'Breakout plus strength versus Bitcoin',max:8,thr:4,q:.12,d:'Ethereum often breaks out of quiet ranges and follows Bitcoin. It scores Bollinger band breakouts, MACD, trend, how ETH is doing against BTC and an RSI extreme guard.'},
 XAU:{n:'Gold',ex:'XAUUSD',ct:100,td:'XAU/USD',fut:'XAUUSDT',sym:'PAXGUSDT',kind:'XAU',wk:1,strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.04,d:'Gold moves in ranges more than crypto, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic). A 50/200 EMA trend filter weakens calls that fight the main trend.'},
-XAG:{n:'Silver',ex:'XAGUSD',ct:5000,td:'XAG/USD',fut:'XAGUSDT',kind:'XAU',wk:1,strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.08,d:'Silver swings in ranges like gold but harder, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic), weakened when fighting the 50/200 EMA trend.'},
-EUR:{n:'EUR/USD',ex:'EURUSD',ct:100000,td:'EUR/USD',sym:'EURUSDT',kind:'XAU',wk:1,strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.02,d:'EUR/USD drifts in ranges, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic), weakened when fighting the 50/200 EMA trend.'}};
+XAG:{n:'Silver',ex:'XAGUSD',ct:5000,td:'XAG/USD',fut:'XAGUSDT',kind:'XAU',wk:1,strat:'Range mean-reversion with trend filter',max:5,thr:3,q:.08,d:'Silver swings in ranges like gold but harder, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic), weakened when fighting the 50/200 EMA trend.'}};
 let cur='BTC',tf='15m',tok=0,last=null,tick=0;const xp={},bt={};
 
 const ema=(a,n)=>{const k=2/(n+1);let q=a[0];return a.map((v,i)=>i?(q=v*k+q*(1-k)):v)};
@@ -66,6 +73,8 @@ const p=n=>{const d=Math.abs(n)<10?5:2;return n.toLocaleString(undefined,{minimu
 const cfg=()=>{try{return JSON.parse(ls('cfg')||'{}')}catch(e){return{}}};
 const tdLog=[],tdCount=()=>{const t=Date.now();while(tdLog.length&&t-tdLog[0]>60000)tdLog.shift();return tdLog.length};
 const showApi=()=>{const e=$('#api');if(!e)return;const n=tdCount();e.textContent='API '+n+'/8';e.className='api '+(n>=8?'r':n>=6?'y':'')};
+const nOn=k=>{const n=cfg().nm;return !n||n[k]!==false};
+const applyTheme=()=>{const m=cfg().th||'auto';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m};
 const closed=()=>{const d=new Date(),w=d.getUTCDay(),h=d.getUTCHours();return w===6||(w===5&&h>=22)||(w===0&&h<22)};
 
 function analyze(k,x,bx){
@@ -129,9 +138,9 @@ try{const g=await navigator.serviceWorker.getRegistration();if(g)await g.showNot
 async function check(k){
 const x=await candles(k,tf),b=k==='ETH'?await candles('BTC',tf):null,r=analyze(k,x.slice(0,-1),b&&b.slice(0,-1)),key='n_'+k+tf,old=(ls(key)||'').split('|');
 ls(key,r.sig+'|'+Date.now());
-if(old[0]&&old[0]!==r.sig&&r.sig!=='WAIT'&&Date.now()-old[1]<(tf==='15m'?30:120)*60000)notify(k,r,x[x.length-1].c);
+if(cfg().nt&&nOn(k)&&old[0]&&old[0]!==r.sig&&r.sig!=='WAIT'&&Date.now()-old[1]<(tf==='15m'?30:120)*60000)notify(k,r,x[x.length-1].c);
 return[x,b]}
-async function scanAll(){if(!cfg().nt)return;for(const k of Object.keys(MK))if(k!==cur)try{await check(k)}catch(e){}}
+async function scanAll(){if(!cfg().nt)return;for(const k of Object.keys(MK))if(k!==cur&&nOn(k))try{await check(k)}catch(e){}}
 
 function spark(a){const cv=$('#cv'),w=cv.width=cv.clientWidth*2,H=cv.height=160,g=cv.getContext('2d'),lo=Math.min(...a),hi=Math.max(...a);
 g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
@@ -153,7 +162,7 @@ $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart
 <details class="card"><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets use ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
 spark(x.slice(-80).map(a=>a.c));showBt();showApi();
 const bk=k+'|'+tf;if(!bt[bk]||Date.now()-bt[bk].ts>6e5)setTimeout(()=>{const q=backtest(k,x.slice(0,-1),bx&&bx.slice(0,-1));q.ts=Date.now();bt[bk]=q;showBt()},50);
-$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':/EURUSDT/.test(sr)?' EUR/USDT is used as a stand-in for EUR/USD.':'')+(M.td&&!ls('tdkey')?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' Twelve Data said: '+M.err+' Using Binance instead.':'')}
+$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':'')+(M.td&&!ls('tdkey')?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' Twelve Data said: '+M.err+' Using Binance instead.':'')}
 async function load(){const my=++tok;$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...';
 try{const[x,b]=await check(cur);if(my===tok)render(cur,x,b)}
 catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then tap Refresh.'}
@@ -164,14 +173,16 @@ $('#tfs').innerHTML=['15m','1h'].map(t=>`<button data-t="${t}">${t}</button>`).j
 $('#cts').innerHTML=Object.keys(MK).map(k=>`<label>${MK[k].ex} units per 1.00 lot<input id="c_${k}" type="number" inputmode="decimal"></label>`).join('');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!(b.dataset.k||b.dataset.t))return;if(b.dataset.k)cur=b.dataset.k;if(b.dataset.t)tf=b.dataset.t;sel();$('#out').innerHTML='';load()});
 document.addEventListener('change',e=>{if(e.target.id==='xp'&&last){xp[cur]=+e.target.value||0;render(...last)}});
+$('#nms').innerHTML=Object.keys(MK).map(k=>`<div class="ck"><input type="checkbox" id="m_${k}"><span>${MK[k].n}</span></div>`).join('');
+matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{applyTheme();if(last)render(...last)});
 $('#rf').onclick=load;
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#tdk').value=ls('tdkey')||'';$('#nt').checked=!!C.nt;$('#dl').showModal()};
-$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkey',$('#tdk').value.trim());
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#tdk').value=ls('tdkey')||'';$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'auto';$('#dl').showModal()};
+$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,th:$('#thm').value,nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkey',$('#tdk').value.trim());
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
 if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent='Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.';$('#bn').hidden=false}
-$('#dl').close();load()};
+$('#dl').close();applyTheme();load()};
 setInterval(showApi,1000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 setInterval(()=>{if(document.hidden&&!cfg().nt)return;load();if(++tick%4===0)scanAll()},60000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});sel();load();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});applyTheme();sel();load();
 </script></body></html>
