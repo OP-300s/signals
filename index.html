@@ -71,6 +71,10 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
 <div class="mu small">Only for these markets:</div><div id="nms"></div>
 <div class="mu small">Only for these timeframes:</div><div id="ntfs"></div>
+<h3>Server (optional)</h3>
+<label>Server address<input id="su" type="text" placeholder="https://my-bot-server.yourname.workers.dev"></label>
+<label>Server password<input id="sk" type="text" autocomplete="off"></label>
+<p class="mu small">With a server address, paper trading runs on your Cloudflare server and the Paper market card shows its results. The password is your ntfy topic and is only used to reset the paper account. Leave both empty to keep paper trading on this phone.</p>
 <h3>Appearance</h3>
 <label>Theme<select id="thm"><option value="auto">Auto (follow my phone)</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
 <h3>Language</h3>
@@ -142,6 +146,9 @@ else if(sig==='WAIT')note=`Score ${sc>0?'+':''}${sc} has not reached ±${M.thr}.
 return{sig,sc,note,F,A,conf:Math.round(Math.min(1,Math.abs(sc)/M.max)*100)}}
 
 const px0={};
+let srv=null,srvErr='';const srvOn=()=>!!cfg().su;
+async function loadSrv(){try{srv=await jget(cfg().su+'/status');srvErr=''}catch(e){srvErr=e.message}}
+const srvInfo=()=>{const t=Math.max(0,...Object.values(srv.px||{}).map(z=>z.t||0)),er=Object.entries(srv.err||{});return `<div class="mu small" style="margin-top:8px">Server prices saved at ${t?new Date(t).toLocaleTimeString():'never'}.${srvErr?' <span class=\"r\">Could not reach the server just now.</span>':''}${er.length?' <span class="r">Problem: '+er.map(([k,m])=>MK[k].n+': '+m).join('; ')+'</span>':''}</div>`};
 const ptf=()=>ls('ptf')==='15m'?'15m':'1h';
 const paper=()=>{try{const q=JSON.parse(ls('paper')||'null');if(q)return q}catch(e){}const b=+cfg().bal||10000;return{b0:b,b,open:{},hist:[]}};
 function paperStep(k,x,r,fresh){
@@ -157,9 +164,11 @@ if(pos&&fresh&&r.sig!=='WAIT'&&(r.sig==='BUY'?1:-1)!==pos.d)close(px,'call rever
 if(!pos&&fresh&&r.sig!=='WAIT'){const d=r.sig==='BUY'?1:-1,sd=1.5*r.A,l=Math.floor(P.b*(+cfg().risk||1)/100/(sd*ct)*100)/100;
 if(l>=0.01)P.open[k]={d,e:px,s:px-d*sd,g:px+d*2*sd,l,t:Date.now()}}
 P.hist=P.hist.slice(-100);ls('paper',JSON.stringify(P))}
-function showPaper(){const e=$('#pp');if(!e)return;const P=paper(),H=P.hist,n=H.length,w=H.filter(z=>z.pnl>0).length,ops=Object.keys(P.open),sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
-const fl=ops.reduce((q,k)=>{const o=P.open[k],ct=+((cfg().ct||{})[k])||MK[k].ct;return q+o.d*((px0[k]||o.e)-o.e)*o.l*ct},0),eq=P.b+fl;
-e.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Paper market</b><button id="pf" class="small">Refresh paper</button></div><div class="mu small">A practice account with pretend money on live prices. The bot trades by itself on the ${ptf()} chart using your Settings and you can only watch.</div><div class="pt"><span class="mu small">Trades on</span><button data-pt="1h" class="${ptf()==='1h'?'on':''}">1h</button><button data-pt="15m" class="${ptf()==='15m'?'on':''}">15m</button></div>
+function showPaper(){const e=$('#pp');if(!e)return;const SV=srvOn(),P=SV?(srv&&srv.paper?srv.paper[ptf()]:null):paper();
+if(!P){e.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Paper market</b><button id="pf" class="small">Refresh paper</button></div><div class="mu small">${srvErr?'Could not reach the server: '+srvErr+'. Check the address in Settings, then tap Refresh paper.':'Loading the server results...'}</div>`;return}
+const H=P.hist,n=H.length,w=H.filter(z=>z.pnl>0).length,ops=Object.keys(P.open),sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
+const fl=ops.reduce((q,k)=>{const o=P.open[k],ct=+(((SV?srv.ct:cfg().ct)||{})[k])||MK[k].ct;return q+o.d*(((SV?((srv.px||{})[k]||{}).p:px0[k])||o.e)-o.e)*o.l*ct},0),eq=P.b+fl;
+e.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Paper market</b><button id="pf" class="small">Refresh paper</button></div><div class="mu small">A practice account with pretend money on live prices. ${SV?'Your server trades by itself on both charts, even when the app is closed, and you can only watch.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="pt"><span class="mu small">${SV?'Showing':'Trades on'}</span><button data-pt="1h" class="${ptf()==='1h'?'on':''}">1h</button><button data-pt="15m" class="${ptf()==='15m'?'on':''}">15m</button></div>${SV?srvInfo():''}
 <div class="lv"><div><span>Balance</span>$${P.b.toFixed(2)}</div><div><span>Profit or loss</span><b class="${eq>=P.b0?'g':'r'}">${sg(eq-P.b0)}</b></div><div><span>Win rate</span>${n?Math.round(w/n*100):0}%</div><div><span>Loss rate</span>${n?Math.round((n-w)/n*100):0}%</div></div>
 <div class="mu small" style="margin-top:8px">${n} closed trades</div>
 ${ops.length?'<div class="mu small" style="margin-top:8px">Open now</div>'+ops.map(k=>{const o=P.open[k];return `<div class="small">${MK[k].n} ${o.d>0?'Buy':'Sell'} ${o.l.toFixed(2)} lot at ${p(o.e)}</div>`}).join(''):''}
@@ -224,9 +233,9 @@ const x=await candles(k,t,n),b=k==='ETH'?await candles('BTC',t,n):null,r=analyze
 ls(key,r.sig+'|'+Date.now());
 const fresh=!!old[0]&&old[0]!==r.sig&&Date.now()-old[1]<(t==='15m'?30:120)*60000;
 if(cfg().nt&&nOn(k)&&nTf(t)&&fresh&&r.sig!=='WAIT')notify(k,r,x[x.length-1].c,t);
-if(t===ptf())paperStep(k,x,r,fresh);
+if(t===ptf()&&!srvOn())paperStep(k,x,r,fresh);
 return[x,b]}
-async function scanAll(){for(const k of Object.keys(MK))for(const t of ['15m','1h'])if(t===ptf()||(cfg().nt&&nOn(k)&&nTf(t)))try{await check(k,t,300)}catch(e){}showPaper()}
+async function scanAll(){if(srvOn())return;for(const k of Object.keys(MK))for(const t of ['15m','1h'])if(t===ptf()||(cfg().nt&&nOn(k)&&nTf(t)))try{await check(k,t,300)}catch(e){}showPaper()}
 
 function spark(a){const cv=$('#cv'),w=cv.width=cv.clientWidth*2,H=cv.height=160,g=cv.getContext('2d'),lo=Math.min(...a),hi=Math.max(...a);
 g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
@@ -252,7 +261,7 @@ spark(x.slice(-80).map(a=>a.c));showBt();showApi();showPaper();
 const bk=k+'|'+tf;if(!bt[bk]||Date.now()-bt[bk].ts>6e5)setTimeout(()=>{const q=backtest(k,x.slice(0,-1),bx&&bx.slice(0,-1));q.ts=Date.now();bt[bk]=q;showBt()},50);
 $('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':'')+(M.td&&!tdKey(k)?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' API problem: '+M.err+' Using the next source.':'')}
 async function load(){const my=++tok;$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...';
-try{const[x,b]=await check(cur,tf);if(my===tok)render(cur,x,b)}
+try{const sp=srvOn()?loadSrv():0;const[x,b]=await check(cur,tf);await sp;if(my===tok)render(cur,x,b)}
 catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then tap Refresh.'}
 finally{if(my===tok){$('#rf').disabled=false;$('#rf').textContent='Refresh'}}}
 function sel(){document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tf))}
@@ -266,11 +275,14 @@ $('#ntfs').innerHTML=['15m','1h'].map(t=>`<div class="ck"><input type="checkbox"
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{applyTheme();if(last)render(...last)});
 document.addEventListener('toggle',e=>{if(e.target.closest&&e.target.closest('#out'))dOpen=e.target.open},true);
 $('#rf').onclick=()=>{tdOff={};load()};
-document.addEventListener('click',async e=>{const b=e.target;if(b.id!=='pf'||b.disabled)return;b.disabled=true;b.textContent='Refreshing...';try{await Promise.all(Object.keys(MK).map(k=>check(k,ptf(),300).catch(()=>{})))}catch(x){}showPaper()});
+document.addEventListener('click',async e=>{const b=e.target;if(b.id!=='pf'||b.disabled)return;b.disabled=true;b.textContent='Refreshing...';try{if(srvOn())await loadSrv();else await Promise.all(Object.keys(MK).map(k=>check(k,ptf(),300).catch(()=>{})))}catch(x){}showPaper()});
 document.addEventListener('click',e=>{const b=e.target.closest('button[data-pt]');if(!b)return;ls('ptf',b.dataset.pt);showPaper()});
-document.addEventListener('click',e=>{if(e.target.id==='pr'&&confirm('Reset the paper account?')){ls('paper','');showPaper()}});
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#b_XAG').value=(C.bk||{}).XAG||'';$('#k_XAU').value=tdKey('XAU');$('#k_XAG').value=tdKey('XAG');$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'dark';['15m','1h'].forEach(t=>$('#t_'+t).checked=nTf(t));$('#dl').showModal()};
-$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,bk:{XAU:$('#b_XAU').value.trim(),XAG:$('#b_XAG').value.trim()},th:$('#thm').value,ntf:['15m','1h'].filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim(),XAG:$('#k_XAG').value.trim()}));
+document.addEventListener('click',async e=>{if(e.target.id!=='pr'||!confirm('Reset the paper account?'))return;
+if(srvOn()){const C=cfg();if(!C.sk){alert('Add your server password in Settings first.');return}
+try{await jget(C.su+'/reset?tf='+ptf()+'&k='+encodeURIComponent(C.sk));await loadSrv()}catch(x){alert('Could not reset: '+x.message+(x.message==='HTTP 403'?' (wrong server password)':''))}}
+else ls('paper','');showPaper()});
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#b_XAG').value=(C.bk||{}).XAG||'';$('#k_XAU').value=tdKey('XAU');$('#k_XAG').value=tdKey('XAG');$('#su').value=C.su||'';$('#sk').value=C.sk||'';$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'dark';['15m','1h'].forEach(t=>$('#t_'+t).checked=nTf(t));$('#dl').showModal()};
+$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,su:(u=>u&&!/^https?:\/\//.test(u)?'https://'+u:u)($('#su').value.trim().replace(/\/+$/,'')),sk:$('#sk').value.trim(),bk:{XAU:$('#b_XAU').value.trim(),XAG:$('#b_XAG').value.trim()},th:$('#thm').value,ntf:['15m','1h'].filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim(),XAG:$('#k_XAG').value.trim()}));
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
 if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent='Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.';$('#bn').hidden=false}
 $('#dl').close();applyTheme();tdOff={};load();scanAll()};
