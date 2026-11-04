@@ -6,7 +6,7 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>My Bot</title>
-<script>try{const c=JSON.parse(localStorage.getItem('cfg')||'{}'),m=c.th||'auto';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m}catch(e){}</script>
+<script>try{const c=JSON.parse(localStorage.getItem('cfg')||'{}'),m=c.th||'dark';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m}catch(e){}</script>
 <style>
 :root{--bg:#f4f5f2;--cd:#fff;--tx:#1b2430;--mu:#667180;--bd:#dde1e5;--g:#1f8a5b;--r:#c8433a;--y:#b7791f}
 :root[data-theme=dark]{--bg:#14181f;--cd:#1c222b;--tx:#e9edf2;--mu:#93a0b0;--bd:#2b3340;--g:#3fbf86;--r:#ef6a60;--y:#e0a542}
@@ -43,6 +43,7 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 .row{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:14px}.row .sig{margin:0}
 .lot{margin-top:14px}.lot span{display:block;color:var(--mu);font-size:13px}.lot b{font-size:34px;line-height:1.1}.lot p{margin:2px 0 0}
 .cm{margin-top:14px}.cm span{font-weight:700;font-size:18px}.cm p{margin:4px 0 0}
+.pt{display:flex;gap:6px;align-items:center;margin-top:8px}.pt button{padding:5px 14px;font-size:13px}.pt .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ctr{text-align:center}
 #gt select{display:block;width:100%;font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
 .goog-te-gadget{font-size:0!important}iframe.skiptranslate,.goog-te-banner-frame{display:none!important}body{top:0!important;position:static!important}
@@ -59,6 +60,10 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <div class="g2"><label>Gold Twelve Data key<input id="k_XAU" type="text"></label>
 <label>Silver Twelve Data key<input id="k_XAG" type="text"></label></div>
 <p class="mu small">Bitcoin and Ethereum use Binance and need no key. Each key is counted on its own.</p>
+<details><summary>Backup API (optional)</summary>
+<p class="mu small">Used when Twelve Data fails or hits its limit, before Binance. Paste an API address that returns candles, with your key inside the address. Use a different service, not another Twelve Data account. You can use {tf} for 15m or 1h, {tfd} for 15min or 1h, {min} for 15 or 60, {limit} for the number of candles, and {from} and {to} for start and end time in seconds.</p>
+<label>Gold backup API address<input id="b_XAU" type="text"></label>
+<label>Silver backup API address<input id="b_XAG" type="text"></label></details>
 <div class="g2"><label>API calls per minute<input id="lm" type="number" inputmode="numeric"></label>
 <label>API calls per day<input id="ld" type="number" inputmode="numeric"></label></div>
 <p class="mu small">Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
@@ -101,7 +106,7 @@ const lvl=(n,L,r)=>n>=L?'r':n>=L*r?'y':'g';
 const showApi=()=>{const e=$('#api');if(!e)return;if(!MK[cur].td){e.innerHTML='Free feed<br>no key needed';return}const K=tdKey(cur);if(!K){e.innerHTML='No key<br>add one in Settings';return}const L=lim(),m=aMin(K),d=aDay(K);e.innerHTML=`Daily API <b class="${lvl(d,L.d,.625)}">${d}/${L.d}</b><br>Minute API <b class="${lvl(m,L.m,.75)}">${m}/${L.m}</b>`};
 const nTf=t=>{const a=cfg().ntf;return !a||a.includes(t)};
 const nOn=k=>{const n=cfg().nm;return !n||n[k]!==false};
-const applyTheme=()=>{const m=cfg().th||'auto';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m};
+const applyTheme=()=>{const m=cfg().th||'dark';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m};
 const closed=()=>{const d=new Date(),w=d.getUTCDay(),h=d.getUTCHours();return w===6||(w===5&&h>=22)||(w===0&&h<22)};
 
 function analyze(k,x,bx){
@@ -137,6 +142,7 @@ else if(sig==='WAIT')note=`Score ${sc>0?'+':''}${sc} has not reached ±${M.thr}.
 return{sig,sc,note,F,A,conf:Math.round(Math.min(1,Math.abs(sc)/M.max)*100)}}
 
 const px0={};
+const ptf=()=>ls('ptf')==='15m'?'15m':'1h';
 const paper=()=>{try{const q=JSON.parse(ls('paper')||'null');if(q)return q}catch(e){}const b=+cfg().bal||10000;return{b0:b,b,open:{},hist:[]}};
 function paperStep(k,x,r,fresh){
 const P=paper(),ct=+((cfg().ct||{})[k])||MK[k].ct,px=x[x.length-1].c;px0[k]=px;let pos=P.open[k];
@@ -146,13 +152,14 @@ for(const c of x){if((c.t||0)<=pos.t)continue;
 if(pos.d>0?c.l<=pos.s:c.h>=pos.s){close(pos.s,'stop-loss hit');break}
 if(pos.d>0?c.h>=pos.g:c.l<=pos.g){close(pos.g,'target hit');break}}
 if(pos&&(pos.d>0?px<=pos.s:px>=pos.s))close(pos.s,'stop-loss hit');
+if(pos&&(pos.d>0?px>=pos.g:px<=pos.g))close(pos.g,'target hit');
 if(pos&&fresh&&r.sig!=='WAIT'&&(r.sig==='BUY'?1:-1)!==pos.d)close(px,'call reversed')}
 if(!pos&&fresh&&r.sig!=='WAIT'){const d=r.sig==='BUY'?1:-1,sd=1.5*r.A,l=Math.floor(P.b*(+cfg().risk||1)/100/(sd*ct)*100)/100;
 if(l>=0.01)P.open[k]={d,e:px,s:px-d*sd,g:px+d*2*sd,l,t:Date.now()}}
 P.hist=P.hist.slice(-100);ls('paper',JSON.stringify(P))}
 function showPaper(){const e=$('#pp');if(!e)return;const P=paper(),H=P.hist,n=H.length,w=H.filter(z=>z.pnl>0).length,ops=Object.keys(P.open),sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
 const fl=ops.reduce((q,k)=>{const o=P.open[k],ct=+((cfg().ct||{})[k])||MK[k].ct;return q+o.d*((px0[k]||o.e)-o.e)*o.l*ct},0),eq=P.b+fl;
-e.innerHTML=`<b>Paper market</b><div class="mu small">A practice account with pretend money on live prices. The bot trades by itself using your Settings and you can only watch.</div>
+e.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Paper market</b><button id="pf" class="small">Refresh paper</button></div><div class="mu small">A practice account with pretend money on live prices. The bot trades by itself on the ${ptf()} chart using your Settings and you can only watch.</div><div class="pt"><span class="mu small">Trades on</span><button data-pt="1h" class="${ptf()==='1h'?'on':''}">1h</button><button data-pt="15m" class="${ptf()==='15m'?'on':''}">15m</button></div>
 <div class="lv"><div><span>Balance</span>$${P.b.toFixed(2)}</div><div><span>Profit or loss</span><b class="${eq>=P.b0?'g':'r'}">${sg(eq-P.b0)}</b></div><div><span>Win rate</span>${n?Math.round(w/n*100):0}%</div><div><span>Loss rate</span>${n?Math.round((n-w)/n*100):0}%</div></div>
 <div class="mu small" style="margin-top:8px">${n} closed trades</div>
 ${ops.length?'<div class="mu small" style="margin-top:8px">Open now</div>'+ops.map(k=>{const o=P.open[k];return `<div class="small">${MK[k].n} ${o.d>0?'Buy':'Sell'} ${o.l.toFixed(2)} lot at ${p(o.e)}</div>`}).join(''):''}
@@ -198,6 +205,9 @@ aHit(key);
 const d=await jget(`https://api.twelvedata.com/time_series?symbol=${M.td}&interval=${t==='15m'?'15min':'1h'}&outputsize=${cnt}&apikey=${encodeURIComponent(key)}`);
 if(d.status==='error'){tdOff[k]=Date.now()+6e5;throw Error(d.message)}
 const r=d.values.reverse().map(a=>({t:Date.parse(a.datetime.replace(' ','T')+'Z')||0,o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}));r.src='Twelve Data '+M.td;return r}catch(e){M.err=e.message}
+const bk=((cfg().bk||{})[k]||'').trim();
+if(bk)try{const mins=t==='15m'?15:60,now=Math.floor(Date.now()/1000);
+const r=parseAny(await jget(bk.replace(/\{tfd\}/g,t==='15m'?'15min':'1h').replace(/\{tf\}/g,t).replace(/\{min\}/g,mins).replace(/\{limit\}/g,cnt).replace(/\{from\}/g,now-cnt*mins*60).replace(/\{to\}/g,now)));r.src='Backup API';return r}catch(e){M.err='Backup API: '+e.message}
 const BL=[];if(M.fut)BL.push(['https://fapi.binance.com/fapi/v1/klines?symbol='+M.fut,'Binance '+M.fut+' futures']);
 if(M.sym)BL.push(['https://data-api.binance.vision/api/v3/klines?symbol='+M.sym,'Binance '+M.sym],['https://api.binance.com/api/v3/klines?symbol='+M.sym,'Binance '+M.sym]);
 for(const[u,src]of BL)try{const r=kl(await jget(`${u}&interval=${t}&limit=${n}`));r.src=src;return r}catch(e){}
@@ -214,9 +224,9 @@ const x=await candles(k,t,n),b=k==='ETH'?await candles('BTC',t,n):null,r=analyze
 ls(key,r.sig+'|'+Date.now());
 const fresh=!!old[0]&&old[0]!==r.sig&&Date.now()-old[1]<(t==='15m'?30:120)*60000;
 if(cfg().nt&&nOn(k)&&nTf(t)&&fresh&&r.sig!=='WAIT')notify(k,r,x[x.length-1].c,t);
-if(t==='15m')paperStep(k,x,r,fresh);
+if(t===ptf())paperStep(k,x,r,fresh);
 return[x,b]}
-async function scanAll(){for(const k of Object.keys(MK))for(const t of ['15m','1h'])if(t==='15m'||(cfg().nt&&nOn(k)&&nTf(t)))try{await check(k,t,300)}catch(e){}showPaper()}
+async function scanAll(){for(const k of Object.keys(MK))for(const t of ['15m','1h'])if(t===ptf()||(cfg().nt&&nOn(k)&&nTf(t)))try{await check(k,t,300)}catch(e){}showPaper()}
 
 function spark(a){const cv=$('#cv'),w=cv.width=cv.clientWidth*2,H=cv.height=160,g=cv.getContext('2d'),lo=Math.min(...a),hi=Math.max(...a);
 g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
@@ -256,9 +266,11 @@ $('#ntfs').innerHTML=['15m','1h'].map(t=>`<div class="ck"><input type="checkbox"
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{applyTheme();if(last)render(...last)});
 document.addEventListener('toggle',e=>{if(e.target.closest&&e.target.closest('#out'))dOpen=e.target.open},true);
 $('#rf').onclick=()=>{tdOff={};load()};
+document.addEventListener('click',async e=>{const b=e.target;if(b.id!=='pf'||b.disabled)return;b.disabled=true;b.textContent='Refreshing...';try{await Promise.all(Object.keys(MK).map(k=>check(k,ptf(),300).catch(()=>{})))}catch(x){}showPaper()});
+document.addEventListener('click',e=>{const b=e.target.closest('button[data-pt]');if(!b)return;ls('ptf',b.dataset.pt);showPaper()});
 document.addEventListener('click',e=>{if(e.target.id==='pr'&&confirm('Reset the paper account?')){ls('paper','');showPaper()}});
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#k_XAU').value=tdKey('XAU');$('#k_XAG').value=tdKey('XAG');$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'auto';['15m','1h'].forEach(t=>$('#t_'+t).checked=nTf(t));$('#dl').showModal()};
-$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,th:$('#thm').value,ntf:['15m','1h'].filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim(),XAG:$('#k_XAG').value.trim()}));
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#b_XAG').value=(C.bk||{}).XAG||'';$('#k_XAU').value=tdKey('XAU');$('#k_XAG').value=tdKey('XAG');$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'dark';['15m','1h'].forEach(t=>$('#t_'+t).checked=nTf(t));$('#dl').showModal()};
+$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,bk:{XAU:$('#b_XAU').value.trim(),XAG:$('#b_XAG').value.trim()},th:$('#thm').value,ntf:['15m','1h'].filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim(),XAG:$('#k_XAG').value.trim()}));
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
 if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent='Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.';$('#bn').hidden=false}
 $('#dl').close();applyTheme();tdOff={};load();scanAll()};
