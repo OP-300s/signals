@@ -46,7 +46,7 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 .pt{display:flex;gap:6px;align-items:center;margin-top:8px}.pt button{padding:5px 14px;font-size:13px}.pt .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ctr{text-align:center}
 .cks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.cks label{display:flex;flex-direction:column;align-items:center;gap:4px;margin:0;font-size:13px;color:var(--tx);text-align:center}.cks input{width:22px;height:22px}
-.fc{display:inline-block;vertical-align:middle;margin-inline-start:8px}#pgv{height:110px}
+.fc{display:inline-block;vertical-align:middle;margin-inline-start:8px}#pgv{height:220px}
 </style></head><body>
 <h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
 <div id="bn" class="bn" hidden onclick="this.hidden=true"></div>
@@ -78,7 +78,7 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <h3>Paper market</h3>
 <div class="g2"><label>Paper starting balance (USD)<input id="pbal" type="number" inputmode="decimal"></label>
 <label>Paper risk per trade (%)<input id="prisk" type="number" inputmode="decimal"></label></div>
-<div class="ck"><input type="checkbox" id="pg"><span>Show the paper balance graph</span></div>
+<div class="ck"><input type="checkbox" id="pg"><span>Show the paper market graph</span></div>
 <p class="mu small">Risk applies to new paper trades. A new balance starts when you reset the paper account. Paper trades use the unit sizes above. With a server, fill in your server password and tap Save to send these to your server.</p>
 <h3>Server (optional)</h3>
 <label>Server address<input id="su" type="text" placeholder="https://my-bot-server.yourname.workers.dev"></label>
@@ -139,7 +139,7 @@ const AD={
 'Market slots':'خانات الأسواق','Each slot shows one market.':'كل خانة تعرض سوقًا واحدًا.','Choose a different market for a slot to change it.':'اختر سوقًا مختلفًا للخانة لتغييره.',
 'Notifications':'الإشعارات','Notify me when the bot says Buy or Sell':'أبلغني عندما يقول الروبوت شراء أو بيع','Only for these markets:':'فقط لهذه الأسواق:','Only for these timeframes:':'فقط لهذه الأطر الزمنية:',
 'With a server address saved, these choices are sent to your server when you tap Save.':'عند حفظ عنوان الخادم، تُرسل هذه الخيارات إلى خادمك عند الضغط على حفظ.',
-'Paper market':'السوق التجريبي','Paper starting balance (USD)':'الرصيد الابتدائي التجريبي (دولار)','Paper risk per trade (%)':'مخاطرة الصفقة التجريبية (%)','Show the paper balance graph':'إظهار رسم رصيد السوق التجريبي',
+'Paper market':'السوق التجريبي','Paper starting balance (USD)':'الرصيد الابتدائي التجريبي (دولار)','Paper risk per trade (%)':'مخاطرة الصفقة التجريبية (%)','Show the paper market graph':'إظهار رسم السوق التجريبي',
 'Risk applies to new paper trades.':'تُطبَّق المخاطرة على الصفقات التجريبية الجديدة.','A new balance starts when you reset the paper account.':'يبدأ الرصيد الجديد عند إعادة ضبط الحساب التجريبي.','Paper trades use the unit sizes above.':'الصفقات التجريبية تستخدم أحجام الوحدات أعلاه.','With a server, fill in your server password and tap Save to send these to your server.':'مع وجود خادم، أدخل كلمة مرور الخادم واضغط حفظ لإرسالها إلى خادمك.',
 'Server (optional)':'الخادم (اختياري)','Server address':'عنوان الخادم','Server password':'كلمة مرور الخادم',
 'With a server address, paper trading and notifications run on your Cloudflare server and the Paper market card shows its results.':'مع وجود عنوان خادم، يعمل التداول التجريبي والإشعارات على خادم Cloudflare الخاص بك وتعرض بطاقة السوق التجريبي نتائجه.',
@@ -188,7 +188,7 @@ const AD={
 'Your server trades by itself on all four charts, even when the app is closed, and you can only watch.':'خادمك يتداول وحده على الأطر الأربعة حتى عندما يكون التطبيق مغلقًا، وأنت تشاهد فقط.',
 'Showing':'عرض','Trades on':'يتداول على','Balance':'الرصيد','Profit or loss':'الربح أو الخسارة','Win rate':'نسبة الربح','Loss rate':'نسبة الخسارة','Open now':'مفتوحة الآن','History':'السجل','Reset paper account':'إعادة ضبط الحساب التجريبي',
 'Loading the server results...':'جارٍ تحميل نتائج الخادم...','Could not reach the server just now.':'تعذر الوصول إلى الخادم الآن.',
-'The graph appears after the first closed trade.':'يظهر الرسم بعد أول صفقة مغلقة.','Paper balance graph':'رسم رصيد السوق التجريبي',
+'Paper market graph':'رسم السوق التجريبي','No paper trades for this market on this chart yet.':'لا توجد صفقات تجريبية لهذا السوق على هذا الفريم بعد.','Red dashed line is the stop-loss, green dashed line is the target.':'الخط الأحمر المتقطع هو وقف الخسارة، والخط الأخضر المتقطع هو الهدف.','An up triangle is a Buy, a down triangle is a Sell, and a dot is where the trade closed.':'المثلث الصاعد يعني شراء، والمثلث الهابط يعني بيع، والنقطة هي مكان إغلاق الصفقة.',
 'stop-loss hit':'تم ضرب وقف الخسارة','target hit':'تم تحقيق الهدف','call reversed':'انعكست التوصية',
 'Reset the paper account?':'هل تريد إعادة ضبط الحساب التجريبي؟','Add your server password in Settings first.':'أضف كلمة مرور الخادم في الإعدادات أولًا.',
 'Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.':'الإشعارات محظورة. في Chrome افتح إعدادات الموقع لهذه الصفحة واسمح بالإشعارات.',
@@ -221,7 +221,8 @@ const AP=[
 [/^(.+?) (Buy|Sell) ([\d.]+) lot at (.+)$/,(m,a,b,c,d)=>`${NM(a)} ${SGN(b)} ${c} لوت عند ${d}`],
 [/^(.+?) (Buy|Sell) ([\d.]+) lot:$/,(m,a,b,c)=>`${NM(a)} ${SGN(b)} ${c} لوت:`],
 [/^\((stop-loss hit|target hit|call reversed)\)$/,(m,a)=>`(${AD[a]})`],
-[/^Closed trades: (\d+)\. Low \$([\d,.]+), high \$([\d,.]+)\.$/,(m,n,a,b)=>`الصفقات المغلقة: ${n}. الأدنى $${a}، الأعلى $${b}.`],
+[/^Paper trades shown: (\d+)\.$/,(m,a)=>`الصفقات التجريبية المعروضة: ${a}.`],
+[/^Local paper trading only trades the (\S+) chart\. Switch the chart to (\S+) to see its trades\.$/,(m,a,b)=>`التداول التجريبي المحلي يتداول على فريم ${a} فقط. غيّر الفريم إلى ${b} لرؤية صفقاته.`],
 [/^On the (\S+) chart over the last (\d+) days, the bot made$/,(m,a,b)=>`على فريم ${a} خلال آخر ${b} يومًا، أصدر الروبوت`],
 [/^would have been in profit, with an average move of ([+-]?[\d.]+) ATR per call, before spread and fees\.$/,(m,a)=>`كانت ستكون رابحة، بمتوسط حركة ${a} ATR لكل توصية، قبل السبريد والرسوم.`],
 [/^(.+): (\d+) calls, (\d+)% in profit$/,(m,a,b,c)=>`${NM(a)}: ${b} توصية، ${c}% منها رابحة`],
@@ -250,13 +251,26 @@ const slots=()=>{const a=cfg().sl;return Array.isArray(a)&&a.length===4&&a.every
 function buildMk(){$('#mk').innerHTML=slots().map(k=>`<button data-k="${k}">${IC[k]||''}<span>${MK[k].n}</span></button>`).join('');trDom($('#mk'));sel()}
 const FACE={w:['00111100','01111110','11011011','11111111','10111101','11000011','01111110','00111100'],l:['00111100','01111110','11011011','11111111','11000011','10111101','01111110','00111100']};
 const face=win=>{let s='';FACE[win?'w':'l'].forEach((row,y)=>[...row].forEach((c,x)=>{if(c==='1')s+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}));return `<svg class="fc" viewBox="0 0 8 8" width="28" height="28" shape-rendering="crispEdges" style="fill:var(--${win?'g':'r'})" role="img" aria-label="${win?'Happy':'Sad'}">${s}</svg>`};
-function drawPg(P){const cv=$('#pgv');if(!cv)return;const cap=$('#pgn'),n=P.hist.length;let s=P.b-P.hist.reduce((q,z)=>q+z.pnl,0);const a=[s];P.hist.forEach(z=>{s+=z.pnl;a.push(s)});
-const w=cv.width=cv.clientWidth*2,H=cv.height=200,g=cv.getContext('2d');g.clearRect(0,0,w,H);
-if(a.length<2){cap.textContent=T('The graph appears after the first closed trade.');return}
-const lo=Math.min(...a),hi=Math.max(...a),Y=y=>H-14-(y-lo)/(hi-lo||1)*(H-28),X=i=>i/(a.length-1)*w,st=getComputedStyle(document.documentElement);
-g.strokeStyle=st.getPropertyValue('--bd');g.lineWidth=2;g.setLineDash([8,8]);g.beginPath();g.moveTo(0,Y(a[0]));g.lineTo(w,Y(a[0]));g.stroke();g.setLineDash([]);
-g.strokeStyle=st.getPropertyValue(a[a.length-1]>=a[0]?'--g':'--r');g.lineWidth=4;g.beginPath();a.forEach((y,i)=>i?g.lineTo(X(i),Y(y)):g.moveTo(X(i),Y(y)));g.stroke();
-cap.textContent=T(`Closed trades: ${n}. Low $${lo.toFixed(2)}, high $${hi.toFixed(2)}.`)}
+function drawTr(){const cv=$('#pgv');if(!cv||!last)return;const k=last[0],x=last[1],cap=$('#pgn'),SV=srvOn();
+const P=SV?(srv&&srv.paper?srv.paper[tf]:null):(tf===ptf()?paper():null);
+const N=Math.min(60,x.length),c=x.slice(-N),ms=TFM[tf]*60000,t0=c[0].t,end=c[N-1].t+ms;
+const w=cv.width=(cv.clientWidth*2)||600,H=cv.height=440,g=cv.getContext('2d');g.clearRect(0,0,w,H);
+const st=getComputedStyle(document.documentElement),G=st.getPropertyValue('--g'),R=st.getPropertyValue('--r'),Mu=st.getPropertyValue('--mu'),Tx=st.getPropertyValue('--tx');
+let tr=[];if(P){if(P.open&&P.open[k])tr.push({o:1,d:P.open[k].d,e:P.open[k].e,s:P.open[k].s,g:P.open[k].g,t:P.open[k].t});
+(P.hist||[]).forEach(z=>{if(z.k===k&&z.et)tr.push({o:0,d:z.d,e:z.e,s:z.s,g:z.g,t:z.et,xt:z.t,xp:z.x,pnl:z.pnl})})}
+tr=tr.filter(z=>z.t<end&&(z.o||z.xt>=t0));
+let lo=Math.min(...c.map(a=>a.l)),hi=Math.max(...c.map(a=>a.h));tr.forEach(z=>[z.e,z.s,z.g].forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v)}));
+const pad=(hi-lo)*.05||1;lo-=pad;hi+=pad;
+const Y=v=>H-10-(v-lo)/(hi-lo)*(H-20),X=tt=>Math.max(0,Math.min(w,((tt-t0)/ms+.5)/N*w)),cw=Math.max(2,w/N*.6),ln=(a,b,c2,d)=>{g.beginPath();g.moveTo(a,b);g.lineTo(c2,d);g.stroke()};
+c.forEach((a,i)=>{const cx=(i+.5)/N*w;g.strokeStyle=g.fillStyle=a.c>=a.o?G:R;g.lineWidth=2;ln(cx,Y(a.h),cx,Y(a.l));const y1=Y(Math.max(a.o,a.c)),y2=Y(Math.min(a.o,a.c));g.fillRect(cx-cw/2,y1,cw,Math.max(2,y2-y1))});
+g.font='bold 22px system-ui,sans-serif';
+tr.forEach(z=>{const x1=X(z.t),x2=z.o?w:X(z.xt);
+g.setLineDash([]);g.lineWidth=2;g.strokeStyle=Mu;ln(x1,Y(z.e),x2,Y(z.e));
+g.setLineDash([10,8]);g.lineWidth=3;g.strokeStyle=R;ln(x1,Y(z.s),x2,Y(z.s));g.strokeStyle=G;ln(x1,Y(z.g),x2,Y(z.g));g.setLineDash([]);
+g.textAlign='right';g.fillStyle=R;g.fillText('SL',Math.max(40,x2-4),Y(z.s)+(z.d>0?24:-8));g.fillStyle=G;g.fillText('TP',Math.max(40,x2-4),Y(z.g)+(z.d>0?-8:24));
+const ey=Y(z.e),sz=13,up=z.d>0;g.fillStyle=up?G:R;g.beginPath();if(up){g.moveTo(x1,ey-sz);g.lineTo(x1-sz,ey+sz*.7);g.lineTo(x1+sz,ey+sz*.7)}else{g.moveTo(x1,ey+sz);g.lineTo(x1-sz,ey-sz*.7);g.lineTo(x1+sz,ey-sz*.7)}g.closePath();g.fill();
+if(!z.o){g.fillStyle=z.pnl>0?G:R;g.strokeStyle=Tx;g.lineWidth=2;g.beginPath();g.arc(x2,Y(z.xp),9,0,6.2832);g.fill();g.stroke()}});
+cap.textContent=!P?(SV?T('Loading the server results...'):T(`Local paper trading only trades the ${ptf()} chart. Switch the chart to ${ptf()} to see its trades.`)):!tr.length?T('No paper trades for this market on this chart yet.'):T(`Paper trades shown: ${tr.length}. Red dashed line is the stop-loss, green dashed line is the target. An up triangle is a Buy, a down triangle is a Sell, and a dot is where the trade closed.`)}
 async function pushSrv(){const C=cfg();if(!C.su)return;
 if(!C.sk){$('#bn').textContent=T('Add your server password in Settings so your notification and paper settings reach the server.');$('#bn').hidden=false;return}
 try{const r=await fetch(C.su+'/config?k='+encodeURIComponent(C.sk),{method:'POST',body:JSON.stringify({nt:!!C.nt,nm:C.nm,ntf:C.ntf,bal:C.pbal,risk:C.prisk,ct:C.ct})});if(!r.ok)throw Error(r.status===403?'wrong server password':'HTTP '+r.status)}
@@ -302,11 +316,11 @@ const ptf=()=>TFS.includes(ls('ptf'))?ls('ptf'):'1h';
 const paper=()=>{try{const q=JSON.parse(ls('paper')||'null');if(q)return q}catch(e){}const b=+cfg().pbal||10000;return{b0:b,b,open:{},hist:[]}};
 function paperStep(k,x,r,fresh){
 const P=paper(),ct=+((cfg().ct||{})[k])||MK[k].ct,px=x[x.length-1].c;px0[k]=px;let pos=P.open[k];
-const close=(price,why)=>{const pnl=pos.d*(price-pos.e)*pos.l*ct-px*0.0003*pos.l*ct;P.b+=pnl;P.hist.push({k,d:pos.d,e:pos.e,x:price,l:pos.l,pnl,why,t:Date.now()});delete P.open[k];pos=null};
+const close=(price,why,tt)=>{const pnl=pos.d*(price-pos.e)*pos.l*ct-px*0.0003*pos.l*ct;P.b+=pnl;P.hist.push({k,d:pos.d,e:pos.e,x:price,l:pos.l,pnl,why,t:tt||Date.now(),et:pos.t,s:pos.s,g:pos.g});delete P.open[k];pos=null};
 if(pos){
 for(const c of x){if((c.t||0)<=pos.t)continue;
-if(pos.d>0?c.l<=pos.s:c.h>=pos.s){close(pos.s,'stop-loss hit');break}
-if(pos.d>0?c.h>=pos.g:c.l<=pos.g){close(pos.g,'target hit');break}}
+if(pos.d>0?c.l<=pos.s:c.h>=pos.s){close(pos.s,'stop-loss hit',c.t);break}
+if(pos.d>0?c.h>=pos.g:c.l<=pos.g){close(pos.g,'target hit',c.t);break}}
 if(pos&&(pos.d>0?px<=pos.s:px>=pos.s))close(pos.s,'stop-loss hit');
 if(pos&&(pos.d>0?px>=pos.g:px<=pos.g))close(pos.g,'target hit');
 if(pos&&fresh&&r.sig!=='WAIT'&&(r.sig==='BUY'?1:-1)!==pos.d)close(px,'call reversed')}
@@ -315,7 +329,7 @@ if(l>=0.01)P.open[k]={d,e:px,s:px-d*sd,g:px+d*2*sd,l,t:Date.now()}}
 P.hist=P.hist.slice(-100);ls('paper',JSON.stringify(P))}
 function showPaper(){const e=$('#pp');if(!e)return;const SV=srvOn(),P=SV?(srv&&srv.paper?srv.paper[ptf()]:null):paper();
 const hd=f=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>Paper market</b>${f||''}</div><button id="pf" class="small">Refresh paper</button></div>`;
-if(!P){e.innerHTML=hd()+`<div class="mu small">${srvErr?'Could not reach the server: '+srvErr+'. Check the address in Settings, then tap Refresh paper.':'Loading the server results...'}</div>`;trDom(e);return}
+if(!P){e.innerHTML=hd()+`<div class="mu small">${srvErr?'Could not reach the server: '+srvErr+'. Check the address in Settings, then tap Refresh paper.':'Loading the server results...'}</div>`;trDom(e);drawTr();return}
 const H=P.hist,n=H.length,w=H.filter(z=>z.pnl>0).length,ops=Object.keys(P.open),sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
 const fl=ops.reduce((q,k)=>{const o=P.open[k],ct=+(((SV?srv.ct:cfg().ct)||{})[k])||MK[k].ct;return q+o.d*(((SV?((srv.px||{})[k]||{}).p:px0[k])||o.e)-o.e)*o.l*ct},0),eq=P.b+fl;
 e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small">A practice account with pretend money on live prices. ${SV?'Your server trades by itself on all four charts, even when the app is closed, and you can only watch.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="pt"><span class="mu small">${SV?'Showing':'Trades on'}</span>${TFS.map(t=>`<button data-pt="${t}" class="${ptf()===t?'on':''}">${t}</button>`).join('')}</div>${SV?srvInfo():''}
@@ -323,7 +337,7 @@ e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small">A practice accoun
 <div class="mu small" style="margin-top:8px">${n} closed trades</div>
 ${ops.length?'<div class="mu small" style="margin-top:8px">Open now</div>'+ops.map(k=>{const o=P.open[k];return `<div class="small">${MK[k].n} ${o.d>0?'Buy':'Sell'} ${o.l.toFixed(2)} lot at ${p(o.e)}</div>`}).join(''):''}
 ${n?'<div class="mu small" style="margin-top:8px">History</div>'+H.slice(-10).reverse().map(z=>`<div class="small">${MK[z.k].n} ${z.d>0?'Buy':'Sell'} ${z.l.toFixed(2)} lot: <b class="${z.pnl>0?'g':'r'}">${sg(z.pnl)}</b> (${z.why})</div>`).join(''):''}
-<button id="pr" class="small" style="margin-top:10px">Reset paper account</button>`;trDom(e);drawPg(P)}
+<button id="pr" class="small" style="margin-top:10px">Reset paper account</button>`;trDom(e);drawTr()}
 function comment(r,dir){
 const S=r.F.filter(z=>z.s*dir>0).sort((a,b)=>Math.abs(b.s)-Math.abs(a.s)),O=r.F.filter(z=>z.s*dir<0);
 if(r.sig==='WAIT'){const t=r.F.slice().sort((a,b)=>Math.abs(b.s)-Math.abs(a.s))[0];return r.note+(t&&t.s?' The strongest factor is: '+t.t:'')}
@@ -403,7 +417,7 @@ $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart
 <div class="bar"><i class="${col}" style="width:${r.conf}%"></i></div>
 <div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv1}${cmb}${lv2}</div>
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
-${C.pg===false?'':'<div class="card" id="pgc"><b>Paper balance graph</b><canvas id="pgv"></canvas><div class="mu small" id="pgn"></div></div>'}
+${C.pg===false?'':'<div class="card" id="pgc"><b>Paper market graph</b><canvas id="pgv"></canvas><div class="mu small" id="pgn"></div></div>'}
 <div class="card" id="pp"></div>
 <div class="card"><b>Past results of the bot</b><p id="btx" class="small"></p></div>
 <div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>

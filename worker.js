@@ -80,11 +80,11 @@ const tfo=C.ntf?C.ntf.includes(tf):list(env.NOTIFY_TF,'15m,30m,1h,4h').includes(
 const newPaper=(env,C)=>{const b=balOf(C,env);return{b0:b,b,open:{},hist:[]}};
 function paperStep(P,k,x,r,fresh,env,C){
 const ct=ctOf(k,env,C),px=x[x.length-1].c;let pos=P.open[k],changed=false;
-const close=(price,why)=>{const pnl=pos.d*(price-pos.e)*pos.l*ct-px*0.0003*pos.l*ct;P.b+=pnl;P.hist.push({k,d:pos.d,e:pos.e,x:price,l:pos.l,pnl,why,t:Date.now()});delete P.open[k];pos=null;changed=true};
+const close=(price,why,tt)=>{const pnl=pos.d*(price-pos.e)*pos.l*ct-px*0.0003*pos.l*ct;P.b+=pnl;P.hist.push({k,d:pos.d,e:pos.e,x:price,l:pos.l,pnl,why,t:tt||Date.now(),et:pos.t,s:pos.s,g:pos.g});delete P.open[k];pos=null;changed=true};
 if(pos){
 for(const c of x){if((c.t||0)<=pos.t)continue;
-if(pos.d>0?c.l<=pos.s:c.h>=pos.s){close(pos.s,'stop-loss hit');break}
-if(pos.d>0?c.h>=pos.g:c.l<=pos.g){close(pos.g,'target hit');break}}
+if(pos.d>0?c.l<=pos.s:c.h>=pos.s){close(pos.s,'stop-loss hit',c.t);break}
+if(pos.d>0?c.h>=pos.g:c.l<=pos.g){close(pos.g,'target hit',c.t);break}}
 if(pos&&(pos.d>0?px<=pos.s:px>=pos.s))close(pos.s,'stop-loss hit');
 if(pos&&(pos.d>0?px>=pos.g:px<=pos.g))close(pos.g,'target hit');
 if(pos&&fresh&&r.sig!=='WAIT'&&(r.sig==='BUY'?1:-1)!==pos.d)close(px,'call reversed')}
