@@ -20,7 +20,7 @@ button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);bor
 .card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:12px 0}
 .mu{color:var(--mu)}.small{font-size:13px}
 .sig{font-size:64px;font-weight:800;letter-spacing:-2px;line-height:1.05;margin:6px 0}
-.api{text-align:right;font-size:13px;line-height:1.5;color:var(--mu)}
+.api{text-align:end;font-size:13px;line-height:1.5;color:var(--mu)}
 .g{color:var(--g)}.r{color:var(--r)}.y{color:var(--y)}
 .bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin:8px 0}
 .bar i{display:block;height:100%}.bar i.g{background:var(--g)}.bar i.r{background:var(--r)}.bar i.y{background:var(--y)}
@@ -39,14 +39,14 @@ dialog input:not([type=checkbox]),dialog select,#xp{display:block;width:100%;fon
 dialog{max-height:88vh;overflow:auto}
 dialog h3{font-size:16px;margin:18px 0 4px;padding-top:14px;border-top:1px solid var(--bd)}
 dialog h3:first-child{border:0;margin-top:0;padding-top:0}
-#mk{display:grid;grid-template-columns:1fr 1fr}#mk button{padding:18px 8px;font-weight:600}
+#mk{display:grid;grid-template-columns:1fr 1fr}#mk button{padding:16px 8px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
 .row{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:14px}.row .sig{margin:0}
 .lot{margin-top:14px}.lot span{display:block;color:var(--mu);font-size:13px}.lot b{font-size:34px;line-height:1.1}.lot p{margin:2px 0 0}
 .cm{margin-top:14px}.cm span{font-weight:700;font-size:18px}.cm p{margin:4px 0 0}
 .pt{display:flex;gap:6px;align-items:center;margin-top:8px}.pt button{padding:5px 14px;font-size:13px}.pt .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ctr{text-align:center}
-#gt select{display:block;width:100%;font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
-.goog-te-gadget{font-size:0!important}iframe.skiptranslate,.goog-te-banner-frame{display:none!important}body{top:0!important;position:static!important}
+.cks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.cks label{display:flex;flex-direction:column;align-items:center;gap:4px;margin:0;font-size:13px;color:var(--tx);text-align:center}.cks input{width:22px;height:22px}
+.fc{display:inline-block;vertical-align:middle;margin-inline-start:8px}#pgv{height:110px}
 </style></head><body>
 <h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
 <div id="bn" class="bn" hidden onclick="this.hidden=true"></div>
@@ -61,25 +61,34 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <label>Silver Twelve Data key<input id="k_XAG" type="text"></label></div>
 <p class="mu small">Bitcoin and Ethereum use Binance and need no key. Each key is counted on its own.</p>
 <details><summary>Backup API (optional)</summary>
-<p class="mu small">Used when Twelve Data fails or hits its limit, before Binance. Paste an API address that returns candles, with your key inside the address. Use a different service, not another Twelve Data account. You can use {tf} for 15m or 1h, {tfd} for 15min or 1h, {min} for 15 or 60, {limit} for the number of candles, and {from} and {to} for start and end time in seconds.</p>
+<p class="mu small">Used when Twelve Data fails or hits its limit, before Binance. Paste an API address that returns candles, with your key inside the address. Use a different service, not another Twelve Data account. You can use {tf} for 15m, 30m, 1h or 4h, {tfd} for 15min, 30min, 1h or 4h, {min} for 15, 30, 60 or 240, {limit} for the number of candles, and {from} and {to} for start and end time in seconds.</p>
 <label>Gold backup API address<input id="b_XAU" type="text"></label>
 <label>Silver backup API address<input id="b_XAG" type="text"></label></details>
 <div class="g2"><label>API calls per minute<input id="lm" type="number" inputmode="numeric"></label>
 <label>API calls per day<input id="ld" type="number" inputmode="numeric"></label></div>
 <p class="mu small">Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
+<h3>Market slots</h3>
+<div id="sls" class="g2"></div>
+<p class="mu small">Each slot shows one market. Choose a different market for a slot to change it.</p>
 <h3>Notifications</h3>
 <div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
-<div class="mu small">Only for these markets:</div><div id="nms"></div>
-<div class="mu small">Only for these timeframes:</div><div id="ntfs"></div>
+<div class="mu small">Only for these markets:</div><div id="nms" class="cks"></div>
+<div class="mu small">Only for these timeframes:</div><div id="ntfs" class="cks"></div>
+<p class="mu small">With a server address saved, these choices are sent to your server when you tap Save.</p>
+<h3>Paper market</h3>
+<div class="g2"><label>Paper starting balance (USD)<input id="pbal" type="number" inputmode="decimal"></label>
+<label>Paper risk per trade (%)<input id="prisk" type="number" inputmode="decimal"></label></div>
+<div class="ck"><input type="checkbox" id="pg"><span>Show the paper balance graph</span></div>
+<p class="mu small">Risk applies to new paper trades. A new balance starts when you reset the paper account. Paper trades use the unit sizes above. With a server, fill in your server password and tap Save to send these to your server.</p>
 <h3>Server (optional)</h3>
 <label>Server address<input id="su" type="text" placeholder="https://my-bot-server.yourname.workers.dev"></label>
 <label>Server password<input id="sk" type="text" autocomplete="off"></label>
-<p class="mu small">With a server address, paper trading runs on your Cloudflare server and the Paper market card shows its results. The password is your ntfy topic and is only used to reset the paper account. Leave both empty to keep paper trading on this phone.</p>
+<p class="mu small">With a server address, paper trading and notifications run on your Cloudflare server and the Paper market card shows its results. The password is your ntfy topic. It is used to send your settings to the server and to reset the paper account. Leave both empty to keep everything on this phone.</p>
 <h3>Appearance</h3>
 <label>Theme<select id="thm"><option value="auto">Auto (follow my phone)</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
 <h3>Language</h3>
-<div id="gt"></div>
-<p class="mu small">Translates the whole app with Google Translate. If no list appears, Google Translate may be blocked in your country.</p>
+<label>Choose language<select id="lg"><option value="en">English</option><option value="ar">العربية (السعودية)</option></select></label>
+<p class="mu small">Changing the language reloads the app.</p>
 <button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></dialog>
 <p class="mu small">Not financial advice. The bot follows fixed rules and can be wrong. Never risk money you cannot afford to lose.</p>
 <script>
@@ -107,11 +116,151 @@ const aDay=id=>{const q=dayMap()[id];return q&&q[0]===today()?q[1]:0};
 const aHit=id=>{(aLog[id]||(aLog[id]=[])).push(Date.now());const d=today(),o=dayMap(),m={};for(const z in o)if(o[z][0]===d)m[z]=o[z];m[id]=[d,(m[id]?m[id][1]:0)+1];ls('apiday2',JSON.stringify(m));showApi()};
 const lim=()=>({m:+cfg().lm||8,d:+cfg().ld||800});
 const lvl=(n,L,r)=>n>=L?'r':n>=L*r?'y':'g';
-const showApi=()=>{const e=$('#api');if(!e)return;if(!MK[cur].td){e.innerHTML='Free feed<br>no key needed';return}const K=tdKey(cur);if(!K){e.innerHTML='No key<br>add one in Settings';return}const L=lim(),m=aMin(K),d=aDay(K);e.innerHTML=`Daily API <b class="${lvl(d,L.d,.625)}">${d}/${L.d}</b><br>Minute API <b class="${lvl(m,L.m,.75)}">${m}/${L.m}</b>`};
+const showApi=()=>{const e=$('#api');if(!e)return;if(!MK[cur].td){e.innerHTML='Free feed<br>no key needed';trDom(e);return}const K=tdKey(cur);if(!K){e.innerHTML='No key<br>add one in Settings';trDom(e);return}const L=lim(),m=aMin(K),d=aDay(K);e.innerHTML=`Daily API <b class="${lvl(d,L.d,.625)}">${d}/${L.d}</b><br>Minute API <b class="${lvl(m,L.m,.75)}">${m}/${L.m}</b>`;trDom(e)};
 const nTf=t=>{const a=cfg().ntf;return !a||a.includes(t)};
 const nOn=k=>{const n=cfg().nm;return !n||n[k]!==false};
 const applyTheme=()=>{const m=cfg().th||'dark';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m};
 const closed=()=>{const d=new Date(),w=d.getUTCDay(),h=d.getUTCHours();return w===6||(w===5&&h>=22)||(w===0&&h<22)};
+const AR_ON=cfg().lg==='ar';
+const AD={
+'My Bot':'روبوتي','Refresh':'تحديث','Refreshing...':'جارٍ التحديث...','Updating...':'جارٍ التحديث...','Settings':'الإعدادات','Save':'حفظ','Cancel':'إلغاء',
+'Gold':'الذهب','Silver':'الفضة','Bitcoin':'بيتكوين','Ethereum':'إيثريوم','Buy':'شراء','Sell':'بيع','Wait':'انتظار',
+'Custom setup':'الإعداد المخصص','Account balance (USD)':'رصيد الحساب (دولار)','Risk per trade (%)':'المخاطرة لكل صفقة (%)',
+'Gold Twelve Data key':'مفتاح Twelve Data للذهب','Silver Twelve Data key':'مفتاح Twelve Data للفضة',
+'Bitcoin and Ethereum use Binance and need no key.':'بيتكوين وإيثريوم يستخدمان Binance ولا يحتاجان إلى مفتاح.','Each key is counted on its own.':'كل مفتاح يُحسب على حدة.',
+'Backup API (optional)':'واجهة API احتياطية (اختياري)',
+'Used when Twelve Data fails or hits its limit, before Binance.':'تُستخدم عند فشل Twelve Data أو وصوله إلى حده، وقبل Binance.',
+'Paste an API address that returns candles, with your key inside the address.':'الصق عنوان API يعيد الشموع مع مفتاحك داخل العنوان.',
+'Use a different service, not another Twelve Data account.':'استخدم خدمة مختلفة وليس حساب Twelve Data آخر.',
+'You can use {tf} for 15m, 30m, 1h or 4h, {tfd} for 15min, 30min, 1h or 4h, {min} for 15, 30, 60 or 240, {limit} for the number of candles, and {from} and {to} for start and end time in seconds.':'يمكنك استخدام {tf} للأطر 15m أو 30m أو 1h أو 4h، و{tfd} لـ 15min أو 30min أو 1h أو 4h، و{min} لـ 15 أو 30 أو 60 أو 240، و{limit} لعدد الشموع، و{from} و{to} لوقت البداية والنهاية بالثواني.',
+'Gold backup API address':'عنوان API الاحتياطي للذهب','Silver backup API address':'عنوان API الاحتياطي للفضة',
+'API calls per minute':'طلبات API في الدقيقة','API calls per day':'طلبات API في اليوم',
+'Check unit sizes in MT5: long-press the symbol, then Specification.':'تحقق من أحجام الوحدات في MT5: اضغط مطولًا على الرمز ثم اختر المواصفات.','Cent accounts use smaller sizes.':'حسابات السنت تستخدم أحجامًا أصغر.',
+'Market slots':'خانات الأسواق','Each slot shows one market.':'كل خانة تعرض سوقًا واحدًا.','Choose a different market for a slot to change it.':'اختر سوقًا مختلفًا للخانة لتغييره.',
+'Notifications':'الإشعارات','Notify me when the bot says Buy or Sell':'أبلغني عندما يقول الروبوت شراء أو بيع','Only for these markets:':'فقط لهذه الأسواق:','Only for these timeframes:':'فقط لهذه الأطر الزمنية:',
+'With a server address saved, these choices are sent to your server when you tap Save.':'عند حفظ عنوان الخادم، تُرسل هذه الخيارات إلى خادمك عند الضغط على حفظ.',
+'Paper market':'السوق التجريبي','Paper starting balance (USD)':'الرصيد الابتدائي التجريبي (دولار)','Paper risk per trade (%)':'مخاطرة الصفقة التجريبية (%)','Show the paper balance graph':'إظهار رسم رصيد السوق التجريبي',
+'Risk applies to new paper trades.':'تُطبَّق المخاطرة على الصفقات التجريبية الجديدة.','A new balance starts when you reset the paper account.':'يبدأ الرصيد الجديد عند إعادة ضبط الحساب التجريبي.','Paper trades use the unit sizes above.':'الصفقات التجريبية تستخدم أحجام الوحدات أعلاه.','With a server, fill in your server password and tap Save to send these to your server.':'مع وجود خادم، أدخل كلمة مرور الخادم واضغط حفظ لإرسالها إلى خادمك.',
+'Server (optional)':'الخادم (اختياري)','Server address':'عنوان الخادم','Server password':'كلمة مرور الخادم',
+'With a server address, paper trading and notifications run on your Cloudflare server and the Paper market card shows its results.':'مع وجود عنوان خادم، يعمل التداول التجريبي والإشعارات على خادم Cloudflare الخاص بك وتعرض بطاقة السوق التجريبي نتائجه.',
+'The password is your ntfy topic.':'كلمة المرور هي موضوع ntfy الخاص بك.','It is used to send your settings to the server and to reset the paper account.':'تُستخدم لإرسال إعداداتك إلى الخادم ولإعادة ضبط الحساب التجريبي.','Leave both empty to keep everything on this phone.':'اتركهما فارغين لإبقاء كل شيء على هذا الهاتف.',
+'Appearance':'المظهر','Theme':'السمة','Auto (follow my phone)':'تلقائي (حسب هاتفي)','Light':'فاتح','Dark':'داكن',
+'Language':'اللغة','Choose language':'اختر اللغة','Changing the language reloads the app.':'تغيير اللغة يعيد تحميل التطبيق.',
+'Not financial advice.':'ليست نصيحة مالية.','The bot follows fixed rules and can be wrong.':'الروبوت يتبع قواعد ثابتة وقد يخطئ.','Never risk money you cannot afford to lose.':'لا تخاطر أبدًا بمال لا تستطيع تحمل خسارته.',
+'Entry (your Exness price)':'الدخول (سعر Exness الخاص بك)','Entry (feed price)':'الدخول (سعر المصدر)','Lot size':'حجم اللوت','Add your balance and risk in Settings.':'أضف رصيدك والمخاطرة في الإعدادات.',
+'Bot comment':'تعليق الروبوت','Type your Exness price from MT5 to get exact levels':'اكتب سعر Exness من MT5 للحصول على مستويات دقيقة',
+'Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.':'أسعار Exness تختلف قليلًا عن هذا المصدر، لذا ضع الوقف والأهداف باستخدام المسافات أعلاه من سعر دخولك الفعلي.',
+'Treat this as a preview until it reopens, around Sunday 22:00 UTC.':'اعتبر هذا معاينة حتى يُعاد فتحه، حوالي الأحد 22:00 بتوقيت UTC.',
+'Why the bot says this':'لماذا يقول الروبوت هذا','Past results of the bot':'النتائج السابقة للروبوت','Checking past results...':'جارٍ فحص النتائج السابقة...',
+'The bot made no Buy or Sell calls in this period.':'لم يصدر الروبوت أي توصية شراء أو بيع في هذه الفترة.','Buy or Sell calls.':'توصية شراء أو بيع.','If you had closed each one after 8 candles,':'لو أغلقت كل واحدة بعد 8 شموع،',
+'That is too few calls to trust this number.':'عدد التوصيات قليل جدًا للوثوق بهذا الرقم.','Past results are weak here, so treat new calls with extra caution.':'النتائج السابقة ضعيفة هنا، لذا تعامل مع التوصيات الجديدة بحذر إضافي.','Past results are positive here, but the future can differ.':'النتائج السابقة إيجابية هنا، لكن المستقبل قد يختلف.',
+'Last 80 candles':'آخر 80 شمعة',
+'Free feed':'مصدر مجاني','no key needed':'لا يحتاج مفتاحًا','No key':'لا يوجد مفتاح','add one in Settings':'أضف مفتاحًا في الإعدادات','Daily API':'API اليومي','Minute API':'API في الدقيقة',
+'The market is too quiet right now: expected moves are too small to cover trading costs.':'السوق هادئ جدًا الآن: الحركات المتوقعة أصغر من أن تغطي تكاليف التداول.',
+'The factors are mixed or weak, so waiting is the better move.':'العوامل متضاربة أو ضعيفة، لذا الانتظار هو الخيار الأفضل.',
+'Be careful:':'انتبه:','The strongest factor is:':'أقوى عامل هو:','If price reaches Target 1, you could close part of the trade.':'إذا وصل السعر إلى الهدف 1، يمكنك إغلاق جزء من الصفقة.',
+'Momentum trend-follower':'متابعة الزخم والاتجاه','Breakout plus strength versus Bitcoin':'الاختراق مع القوة مقابل بيتكوين','Range mean-reversion with trend filter':'العودة للمتوسط داخل النطاق مع فلتر الاتجاه',
+'Bitcoin trends hard once it moves, so this bot rides momentum.':'بيتكوين يتجه بقوة عندما يتحرك، لذا يركب هذا الروبوت الزخم.','It scores four things: trend (EMA 20 and 50), MACD, RSI and volume.':'يقيّم أربعة أمور: الاتجاه (EMA 20 و50)، وMACD، وRSI، وحجم التداول.',
+'Ethereum often breaks out of quiet ranges and follows Bitcoin.':'إيثريوم كثيرًا ما يخترق النطاقات الهادئة ويتبع بيتكوين.','It scores Bollinger band breakouts, MACD, trend, how ETH is doing against BTC and an RSI extreme guard.':'يقيّم اختراقات نطاقات بولينجر، وMACD، والاتجاه، وأداء ETH مقابل BTC، وحارس تطرف RSI.',
+'Gold moves in ranges more than crypto, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic).':'الذهب يتحرك في نطاقات أكثر من العملات الرقمية، لذا يشتري هذا الروبوت الهبوطات المبالغ فيها ويبيع الصعودات المبالغ فيها (RSI، نطاقات بولينجر، ستوكاستيك).',
+'A 50/200 EMA trend filter weakens calls that fight the main trend.':'فلتر اتجاه EMA 50/200 يُضعف التوصيات التي تعاكس الاتجاه الرئيسي.',
+'Silver swings in ranges like gold but harder, so this bot buys stretched dips and sells stretched rallies (RSI, Bollinger bands, Stochastic), weakened when fighting the 50/200 EMA trend.':'الفضة تتأرجح في نطاقات مثل الذهب لكن بحدة أكبر، لذا يشتري هذا الروبوت الهبوطات المبالغ فيها ويبيع الصعودات المبالغ فيها (RSI، نطاقات بولينجر، ستوكاستيك)، وتضعف التوصية عندما تعاكس اتجاه EMA 50/200.',
+'Stop-loss and targets use ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.':'يعتمد وقف الخسارة والأهداف على ATR وهو متوسط مدى الشمعة: الوقف 1.5 ضعف، والأهداف 1.5 و3 أضعاف.',
+'Trend':'الاتجاه','Momentum (MACD)':'الزخم (MACD)','Volume':'حجم التداول','Breakout (Bollinger)':'الاختراق (بولينجر)','ETH vs BTC':'إيثريوم مقابل بيتكوين','Bollinger position':'موقع بولينجر','Trend filter':'فلتر الاتجاه',
+'Price is above the 20 and 50 averages and they are stacked upward: clear uptrend.':'السعر فوق المتوسطين 20 و50 وهما مرتبان صعودًا: اتجاه صاعد واضح.',
+'Price is below the 20 and 50 averages and they are stacked downward: clear downtrend.':'السعر تحت المتوسطين 20 و50 وهما مرتبان هبوطًا: اتجاه هابط واضح.',
+'Price is above the 50 average but the short-term trend is mixed.':'السعر فوق المتوسط 50 لكن الاتجاه القصير مختلط.','Price is below the 50 average and the short-term trend is mixed.':'السعر تحت المتوسط 50 والاتجاه القصير مختلط.',
+'MACD momentum is positive and getting stronger.':'زخم MACD إيجابي ويزداد قوة.','MACD momentum is positive but fading.':'زخم MACD إيجابي لكنه يضعف.','MACD momentum is negative and getting stronger.':'زخم MACD سلبي ويزداد قوة.','MACD momentum is negative but recovering.':'زخم MACD سلبي لكنه يتعافى.',
+'RSI is above 70: overheated, a pullback is likely.':'مؤشر RSI فوق 70: تشبع شرائي، ومن المرجح حدوث تراجع.','RSI is between 55 and 70: healthy bullish strength.':'مؤشر RSI بين 55 و70: قوة صعودية صحية.','RSI is neutral (45 to 55).':'مؤشر RSI محايد (من 45 إلى 55).','RSI is between 30 and 45: bearish pressure.':'مؤشر RSI بين 30 و45: ضغط هبوطي.','RSI is below 30: oversold, a bounce is possible.':'مؤشر RSI تحت 30: تشبع بيعي، وقد يحدث ارتداد.',
+'Volume data is not available from this source.':'بيانات حجم التداول غير متوفرة من هذا المصدر.',
+'Price closed above the upper band: upside breakout.':'أغلق السعر فوق النطاق العلوي: اختراق صعودي.','Price closed below the lower band: downside breakout.':'أغلق السعر تحت النطاق السفلي: اختراق هبوطي.','Price is pushing against the upper band.':'السعر يضغط على النطاق العلوي.','Price is pressing the lower band.':'السعر يضغط على النطاق السفلي.','Price is inside the bands: no breakout yet.':'السعر داخل النطاقات: لا يوجد اختراق بعد.',
+'The bands are unusually tight, so a big move may be building.':'النطاقات ضيقة بشكل غير معتاد، لذا قد تتشكل حركة كبيرة.',
+'ETH is moving in line with BTC.':'إيثريوم يتحرك بالتوافق مع بيتكوين.',
+'RSI is above 75: stretched, a pullback is likely.':'مؤشر RSI فوق 75: مبالغ فيه، ومن المرجح حدوث تراجع.','RSI is below 25: oversold, a bounce is likely.':'مؤشر RSI تحت 25: تشبع بيعي، ومن المرجح حدوث ارتداد.','RSI is not at an extreme.':'مؤشر RSI ليس عند مستوى متطرف.',
+'RSI is below 30: oversold, a bounce is likely.':'مؤشر RSI تحت 30: تشبع بيعي، ومن المرجح حدوث ارتداد.','RSI is below 40: leaning oversold.':'مؤشر RSI تحت 40: يميل إلى التشبع البيعي.','RSI is above 70: overbought, a drop is likely.':'مؤشر RSI فوق 70: تشبع شرائي، ومن المرجح حدوث هبوط.','RSI is above 60: leaning overbought.':'مؤشر RSI فوق 60: يميل إلى التشبع الشرائي.','RSI is neutral.':'مؤشر RSI محايد.',
+'Price is at the bottom of its normal range.':'السعر عند أسفل نطاقه المعتاد.','Price is near the bottom of its range.':'السعر قرب أسفل نطاقه.','Price is at the top of its normal range.':'السعر عند أعلى نطاقه المعتاد.','Price is near the top of its range.':'السعر قرب أعلى نطاقه.','Price is mid-range.':'السعر في منتصف النطاق.',
+'Stochastic is below 20: short-term oversold.':'ستوكاستيك تحت 20: تشبع بيعي قصير المدى.','Stochastic is above 80: short-term overbought.':'ستوكاستيك فوق 80: تشبع شرائي قصير المدى.','Stochastic is neutral.':'ستوكاستيك محايد.',
+'The 50 average is below the 200: the main trend is down, so buying dips is riskier.':'المتوسط 50 تحت المتوسط 200: الاتجاه الرئيسي هابط، لذا الشراء عند الهبوط أكثر خطورة.',
+'The 50 average is above the 200: the main trend is up, so selling rallies is riskier.':'المتوسط 50 فوق المتوسط 200: الاتجاه الرئيسي صاعد، لذا البيع عند الصعود أكثر خطورة.',
+'This call does not fight the main trend.':'هذه التوصية لا تعاكس الاتجاه الرئيسي.',
+'Gold uses PAXG, a gold token, as a stand-in.':'الذهب يستخدم PAXG وهو رمز ذهب كبديل.','A Twelve Data key in Settings gives true spot prices.':'مفتاح Twelve Data في الإعدادات يعطي أسعارًا فورية حقيقية.',
+'Refresh paper':'تحديث التجريبي','A practice account with pretend money on live prices.':'حساب تدريبي بأموال وهمية على أسعار حية.',
+'Your server trades by itself on all four charts, even when the app is closed, and you can only watch.':'خادمك يتداول وحده على الأطر الأربعة حتى عندما يكون التطبيق مغلقًا، وأنت تشاهد فقط.',
+'Showing':'عرض','Trades on':'يتداول على','Balance':'الرصيد','Profit or loss':'الربح أو الخسارة','Win rate':'نسبة الربح','Loss rate':'نسبة الخسارة','Open now':'مفتوحة الآن','History':'السجل','Reset paper account':'إعادة ضبط الحساب التجريبي',
+'Loading the server results...':'جارٍ تحميل نتائج الخادم...','Could not reach the server just now.':'تعذر الوصول إلى الخادم الآن.',
+'The graph appears after the first closed trade.':'يظهر الرسم بعد أول صفقة مغلقة.','Paper balance graph':'رسم رصيد السوق التجريبي',
+'stop-loss hit':'تم ضرب وقف الخسارة','target hit':'تم تحقيق الهدف','call reversed':'انعكست التوصية',
+'Reset the paper account?':'هل تريد إعادة ضبط الحساب التجريبي؟','Add your server password in Settings first.':'أضف كلمة مرور الخادم في الإعدادات أولًا.',
+'Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.':'الإشعارات محظورة. في Chrome افتح إعدادات الموقع لهذه الصفحة واسمح بالإشعارات.',
+'Add your server password in Settings so your notification and paper settings reach the server.':'أضف كلمة مرور الخادم في الإعدادات كي تصل إعدادات الإشعارات والسوق التجريبي إلى الخادم.'};
+const PER={'15 minutes':'15 دقيقة','30 minutes':'30 دقيقة','hour':'ساعة','4 hours':'4 ساعات'};
+const NM=s=>AD[s]||s,SGN=s=>s==='Buy'?'شراء':'بيع';
+const AP=[
+[/^(.+) on the (\S+) chart$/,(m,a,b)=>`${NM(a)} على فريم ${b}`],
+[/^from (.+)$/,(m,a)=>`من ${a}`],
+[/^Strength (\d+)%, score ([+-]?\d+) out of ±(\d+)$/,(m,a,b,c)=>`القوة ${a}%، النتيجة ${b} من أصل ±${c}`],
+[/^Score ([+-]?\d+) has not reached ±(\d+)\.$/,(m,a,b)=>`النتيجة ${a} لم تصل إلى ±${b}.`],
+[/^Exness (\S+) is closed for the weekend\.$/,(m,a)=>`سوق ${a} في Exness مغلق لعطلة نهاية الأسبوع.`],
+[/^Stop-loss, \$([\d,.]+) away$/,(m,a)=>`وقف الخسارة، على بعد $${a}`],
+[/^Target (\d), \$([\d,.]+) away$/,(m,n,a)=>`الهدف ${n}، على بعد $${a}`],
+[/^Even the smallest lot risks more than your ([\d.]+)% limit\.$/,(m,a)=>`حتى أصغر لوت يخاطر بأكثر من حدك ${a}%.`],
+[/^In MT5 this is the (\S+) symbol\.$/,(m,a)=>`في MT5 هذا هو الرمز ${a}.`],
+[/^Stochastic (\d+)$/,(m,a)=>`ستوكاستيك ${a}`],
+[/^Volume is ([\d.]+)x normal on a (green|red) candle: (buyers|sellers) are pushing\.$/,(m,a,b,c)=>`حجم التداول ${a} ضعف المعتاد على شمعة ${b==='green'?'خضراء':'حمراء'}: ${c==='buyers'?'المشترون':'البائعون'} يدفعون السعر.`],
+[/^Volume is ([\d.]+)x normal: no strong confirmation\.$/,(m,a)=>`حجم التداول ${a} ضعف المعتاد: لا يوجد تأكيد قوي.`],
+[/^ETH gained ([\d.]+)% on BTC over 12 candles: it is leading\.$/,(m,a)=>`ارتفع إيثريوم ${a}% مقابل بيتكوين خلال 12 شمعة: إنه يقود.`],
+[/^ETH lost ([\d.]+)% against BTC over 12 candles: it is lagging\.$/,(m,a)=>`خسر إيثريوم ${a}% مقابل بيتكوين خلال 12 شمعة: إنه متأخر.`],
+[/^Buy call\.$/,()=>'توصية شراء.'],[/^Sell call\.$/,()=>'توصية بيع.'],
+[/^Be careful: (.+)$/,(m,a)=>'انتبه: '+T(a)],
+[/^The strongest factor is: (.+)$/,(m,a)=>'أقوى عامل هو: '+T(a)],
+[/^The stop-loss is ([\d,.]+) from your entry\.$/,(m,a)=>`وقف الخسارة على بعد ${a} من دخولك.`],
+[/^Server prices saved at (.+)\.$/,(m,a)=>`حُفظت أسعار الخادم في ${a}.`],
+[/^Problem: (.*)$/,(m,a)=>`مشكلة: ${a}`],
+[/^Could not reach the server: (.*)\. Check the address in Settings, then tap Refresh paper\.$/,(m,a)=>`تعذر الوصول إلى الخادم: ${a}. تحقق من العنوان في الإعدادات ثم اضغط تحديث التجريبي.`],
+[/^(\d+) closed trades$/,(m,a)=>`عدد الصفقات المغلقة: ${a}`],
+[/^(.+?) (Buy|Sell) ([\d.]+) lot at (.+)$/,(m,a,b,c,d)=>`${NM(a)} ${SGN(b)} ${c} لوت عند ${d}`],
+[/^(.+?) (Buy|Sell) ([\d.]+) lot:$/,(m,a,b,c)=>`${NM(a)} ${SGN(b)} ${c} لوت:`],
+[/^\((stop-loss hit|target hit|call reversed)\)$/,(m,a)=>`(${AD[a]})`],
+[/^Closed trades: (\d+)\. Low \$([\d,.]+), high \$([\d,.]+)\.$/,(m,n,a,b)=>`الصفقات المغلقة: ${n}. الأدنى $${a}، الأعلى $${b}.`],
+[/^On the (\S+) chart over the last (\d+) days, the bot made$/,(m,a,b)=>`على فريم ${a} خلال آخر ${b} يومًا، أصدر الروبوت`],
+[/^would have been in profit, with an average move of ([+-]?[\d.]+) ATR per call, before spread and fees\.$/,(m,a)=>`كانت ستكون رابحة، بمتوسط حركة ${a} ATR لكل توصية، قبل السبريد والرسوم.`],
+[/^(.+): (\d+) calls, (\d+)% in profit$/,(m,a,b,c)=>`${NM(a)}: ${b} توصية، ${c}% منها رابحة`],
+[/^Strategy: (.+)$/,(m,a)=>`الاستراتيجية: ${NM(a)}`],
+[/^Updated (.+?)\.$/,(m,a)=>`آخر تحديث ${a}.`],
+[/^The bot uses closed candles, so its call changes at most once per (.+)\.$/,(m,a)=>`الروبوت يعتمد على الشموع المغلقة، لذا يتغير قراره مرة واحدة كحد أقصى كل ${PER[a]||a}.`],
+[/^API problem: (.*) Using the next source\.$/,(m,a)=>`مشكلة في API: ${a} سيتم استخدام المصدر التالي.`],
+[/^Could not update: (.*)\. Check your connection, then tap Refresh\.$/,(m,a)=>`تعذر التحديث: ${a}. تحقق من اتصالك ثم اضغط تحديث.`],
+[/^Saved here, but could not send your settings to the server: (.*)$/,(m,a)=>`تم الحفظ هنا، لكن تعذر إرسال إعداداتك إلى الخادم: ${a}`],
+[/^Slot (\d)$/,(m,a)=>`الخانة ${a}`],
+[/^(\w+) units per 1\.00 lot$/,(m,a)=>`وحدات ${a} لكل 1.00 لوت`],
+[/^The bot trades by itself on the (\S+) chart using your Settings and you can only watch\.$/,(m,a)=>`الروبوت يتداول وحده على فريم ${a} حسب إعداداتك، وأنت تشاهد فقط.`]];
+const T1=s=>{if(Object.prototype.hasOwnProperty.call(AD,s))return AD[s];for(const[r,f]of AP){const m=s.match(r);if(m)return f(...m)}return null};
+const T=s=>{if(!AR_ON||typeof s!=='string')return s;const t=s.trim();if(!t)return s;const o=T1(t);if(o!==null)return o;
+const ps=t.split(/(?<=[.!?])\s+/);if(ps.length>1){let any=false;const q=ps.map(z=>{const r=T1(z);if(r!==null){any=true;return r}return z});if(any)return q.join(' ')}return s};
+function trDom(root){if(!AR_ON||!root)return;const w=document.createTreeWalker(root,4),L=[];let n;while(n=w.nextNode())L.push(n);
+L.forEach(n=>{const s=n.nodeValue,t=s.trim();if(!t)return;const o=T(t);if(o!==t)n.nodeValue=s.replace(t,()=>o)})}
+if(AR_ON){document.documentElement.lang='ar';document.documentElement.dir='rtl'}
+const TFS=['15m','30m','1h','4h'],TFM={'15m':15,'30m':30,'1h':60,'4h':240},TFD={'15m':'15min','30m':'30min','1h':'1h','4h':'4h'},TFG={'15m':900,'1h':3600};
+const IC={
+XAU:'<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#e0a542"/><circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.4"/><text x="12" y="15.5" font-size="9" font-weight="700" text-anchor="middle" fill="#6b4a0e" font-family="system-ui,sans-serif">Au</text></svg>',
+XAG:'<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#aab4c0"/><circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.4"/><text x="12" y="15.5" font-size="9" font-weight="700" text-anchor="middle" fill="#3d4753" font-family="system-ui,sans-serif">Ag</text></svg>',
+BTC:'<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#f7931a"/><path d="M10 4.5v2.2M13.5 4.5v2.2M10 17.3v2.2M13.5 17.3v2.2" stroke="#fff" stroke-width="1.5"/><text x="12" y="16.6" font-size="13" font-weight="800" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif">B</text></svg>',
+ETH:'<svg viewBox="0 0 24 24" width="22" height="22"><polygon points="12,1.5 19.5,12.3 12,16.6 4.5,12.3" fill="#6f86ee"/><polygon points="12,22.5 19.5,13.7 12,18 4.5,13.7" fill="#a2b0f5"/></svg>'};
+const slots=()=>{const a=cfg().sl;return Array.isArray(a)&&a.length===4&&a.every(z=>MK[z])?a:['XAU','XAG','BTC','ETH']};
+function buildMk(){$('#mk').innerHTML=slots().map(k=>`<button data-k="${k}">${IC[k]||''}<span>${MK[k].n}</span></button>`).join('');trDom($('#mk'));sel()}
+const FACE={w:['00111100','01111110','11011011','11111111','10111101','11000011','01111110','00111100'],l:['00111100','01111110','11011011','11111111','11000011','10111101','01111110','00111100']};
+const face=win=>{let s='';FACE[win?'w':'l'].forEach((row,y)=>[...row].forEach((c,x)=>{if(c==='1')s+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}));return `<svg class="fc" viewBox="0 0 8 8" width="28" height="28" shape-rendering="crispEdges" style="fill:var(--${win?'g':'r'})" role="img" aria-label="${win?'Happy':'Sad'}">${s}</svg>`};
+function drawPg(P){const cv=$('#pgv');if(!cv)return;const cap=$('#pgn'),n=P.hist.length;let s=P.b-P.hist.reduce((q,z)=>q+z.pnl,0);const a=[s];P.hist.forEach(z=>{s+=z.pnl;a.push(s)});
+const w=cv.width=cv.clientWidth*2,H=cv.height=200,g=cv.getContext('2d');g.clearRect(0,0,w,H);
+if(a.length<2){cap.textContent=T('The graph appears after the first closed trade.');return}
+const lo=Math.min(...a),hi=Math.max(...a),Y=y=>H-14-(y-lo)/(hi-lo||1)*(H-28),X=i=>i/(a.length-1)*w,st=getComputedStyle(document.documentElement);
+g.strokeStyle=st.getPropertyValue('--bd');g.lineWidth=2;g.setLineDash([8,8]);g.beginPath();g.moveTo(0,Y(a[0]));g.lineTo(w,Y(a[0]));g.stroke();g.setLineDash([]);
+g.strokeStyle=st.getPropertyValue(a[a.length-1]>=a[0]?'--g':'--r');g.lineWidth=4;g.beginPath();a.forEach((y,i)=>i?g.lineTo(X(i),Y(y)):g.moveTo(X(i),Y(y)));g.stroke();
+cap.textContent=T(`Closed trades: ${n}. Low $${lo.toFixed(2)}, high $${hi.toFixed(2)}.`)}
+async function pushSrv(){const C=cfg();if(!C.su)return;
+if(!C.sk){$('#bn').textContent=T('Add your server password in Settings so your notification and paper settings reach the server.');$('#bn').hidden=false;return}
+try{const r=await fetch(C.su+'/config?k='+encodeURIComponent(C.sk),{method:'POST',body:JSON.stringify({nt:!!C.nt,nm:C.nm,ntf:C.ntf,bal:C.pbal,risk:C.prisk,ct:C.ct})});if(!r.ok)throw Error(r.status===403?'wrong server password':'HTTP '+r.status)}
+catch(e){$('#bn').textContent=T('Saved here, but could not send your settings to the server: '+e.message);$('#bn').hidden=false}}
 
 function analyze(k,x,bx){
 const M=MK[k],c=x.map(a=>a.c),v=x.map(a=>a.v),i=c.length-1,px=c[i],F=[],add=(n,r)=>F.push({n,s:r[0],t:r[1]});
@@ -149,8 +298,8 @@ const px0={};
 let srv=null,srvErr='';const srvOn=()=>!!cfg().su;
 async function loadSrv(){try{srv=await jget(cfg().su+'/status');srvErr=''}catch(e){srvErr=e.message}}
 const srvInfo=()=>{const t=Math.max(0,...Object.values(srv.px||{}).map(z=>z.t||0)),er=Object.entries(srv.err||{});return `<div class="mu small" style="margin-top:8px">Server prices saved at ${t?new Date(t).toLocaleTimeString():'never'}.${srvErr?' <span class=\"r\">Could not reach the server just now.</span>':''}${er.length?' <span class="r">Problem: '+er.map(([k,m])=>MK[k].n+': '+m).join('; ')+'</span>':''}</div>`};
-const ptf=()=>ls('ptf')==='15m'?'15m':'1h';
-const paper=()=>{try{const q=JSON.parse(ls('paper')||'null');if(q)return q}catch(e){}const b=+cfg().bal||10000;return{b0:b,b,open:{},hist:[]}};
+const ptf=()=>TFS.includes(ls('ptf'))?ls('ptf'):'1h';
+const paper=()=>{try{const q=JSON.parse(ls('paper')||'null');if(q)return q}catch(e){}const b=+cfg().pbal||10000;return{b0:b,b,open:{},hist:[]}};
 function paperStep(k,x,r,fresh){
 const P=paper(),ct=+((cfg().ct||{})[k])||MK[k].ct,px=x[x.length-1].c;px0[k]=px;let pos=P.open[k];
 const close=(price,why)=>{const pnl=pos.d*(price-pos.e)*pos.l*ct-px*0.0003*pos.l*ct;P.b+=pnl;P.hist.push({k,d:pos.d,e:pos.e,x:price,l:pos.l,pnl,why,t:Date.now()});delete P.open[k];pos=null};
@@ -161,19 +310,20 @@ if(pos.d>0?c.h>=pos.g:c.l<=pos.g){close(pos.g,'target hit');break}}
 if(pos&&(pos.d>0?px<=pos.s:px>=pos.s))close(pos.s,'stop-loss hit');
 if(pos&&(pos.d>0?px>=pos.g:px<=pos.g))close(pos.g,'target hit');
 if(pos&&fresh&&r.sig!=='WAIT'&&(r.sig==='BUY'?1:-1)!==pos.d)close(px,'call reversed')}
-if(!pos&&fresh&&r.sig!=='WAIT'){const d=r.sig==='BUY'?1:-1,sd=1.5*r.A,l=Math.floor(P.b*(+cfg().risk||1)/100/(sd*ct)*100)/100;
+if(!pos&&fresh&&r.sig!=='WAIT'){const d=r.sig==='BUY'?1:-1,sd=1.5*r.A,l=Math.floor(P.b*(+cfg().prisk||1)/100/(sd*ct)*100)/100;
 if(l>=0.01)P.open[k]={d,e:px,s:px-d*sd,g:px+d*2*sd,l,t:Date.now()}}
 P.hist=P.hist.slice(-100);ls('paper',JSON.stringify(P))}
 function showPaper(){const e=$('#pp');if(!e)return;const SV=srvOn(),P=SV?(srv&&srv.paper?srv.paper[ptf()]:null):paper();
-if(!P){e.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Paper market</b><button id="pf" class="small">Refresh paper</button></div><div class="mu small">${srvErr?'Could not reach the server: '+srvErr+'. Check the address in Settings, then tap Refresh paper.':'Loading the server results...'}</div>`;return}
+const hd=f=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>Paper market</b>${f||''}</div><button id="pf" class="small">Refresh paper</button></div>`;
+if(!P){e.innerHTML=hd()+`<div class="mu small">${srvErr?'Could not reach the server: '+srvErr+'. Check the address in Settings, then tap Refresh paper.':'Loading the server results...'}</div>`;trDom(e);return}
 const H=P.hist,n=H.length,w=H.filter(z=>z.pnl>0).length,ops=Object.keys(P.open),sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
 const fl=ops.reduce((q,k)=>{const o=P.open[k],ct=+(((SV?srv.ct:cfg().ct)||{})[k])||MK[k].ct;return q+o.d*(((SV?((srv.px||{})[k]||{}).p:px0[k])||o.e)-o.e)*o.l*ct},0),eq=P.b+fl;
-e.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Paper market</b><button id="pf" class="small">Refresh paper</button></div><div class="mu small">A practice account with pretend money on live prices. ${SV?'Your server trades by itself on both charts, even when the app is closed, and you can only watch.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="pt"><span class="mu small">${SV?'Showing':'Trades on'}</span><button data-pt="1h" class="${ptf()==='1h'?'on':''}">1h</button><button data-pt="15m" class="${ptf()==='15m'?'on':''}">15m</button></div>${SV?srvInfo():''}
+e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small">A practice account with pretend money on live prices. ${SV?'Your server trades by itself on all four charts, even when the app is closed, and you can only watch.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="pt"><span class="mu small">${SV?'Showing':'Trades on'}</span>${TFS.map(t=>`<button data-pt="${t}" class="${ptf()===t?'on':''}">${t}</button>`).join('')}</div>${SV?srvInfo():''}
 <div class="lv"><div><span>Balance</span>$${P.b.toFixed(2)}</div><div><span>Profit or loss</span><b class="${eq>=P.b0?'g':'r'}">${sg(eq-P.b0)}</b></div><div><span>Win rate</span>${n?Math.round(w/n*100):0}%</div><div><span>Loss rate</span>${n?Math.round((n-w)/n*100):0}%</div></div>
 <div class="mu small" style="margin-top:8px">${n} closed trades</div>
 ${ops.length?'<div class="mu small" style="margin-top:8px">Open now</div>'+ops.map(k=>{const o=P.open[k];return `<div class="small">${MK[k].n} ${o.d>0?'Buy':'Sell'} ${o.l.toFixed(2)} lot at ${p(o.e)}</div>`}).join(''):''}
 ${n?'<div class="mu small" style="margin-top:8px">History</div>'+H.slice(-10).reverse().map(z=>`<div class="small">${MK[z.k].n} ${z.d>0?'Buy':'Sell'} ${z.l.toFixed(2)} lot: <b class="${z.pnl>0?'g':'r'}">${sg(z.pnl)}</b> (${z.why})</div>`).join(''):''}
-<button id="pr" class="small" style="margin-top:10px">Reset paper account</button>`}
+<button id="pr" class="small" style="margin-top:10px">Reset paper account</button>`;trDom(e);drawPg(P)}
 function comment(r,dir){
 const S=r.F.filter(z=>z.s*dir>0).sort((a,b)=>Math.abs(b.s)-Math.abs(a.s)),O=r.F.filter(z=>z.s*dir<0);
 if(r.sig==='WAIT'){const t=r.F.slice().sort((a,b)=>Math.abs(b.s)-Math.abs(a.s))[0];return r.note+(t&&t.s?' The strongest factor is: '+t.t:'')}
@@ -183,10 +333,10 @@ const H=8,out=[];let prev='';
 for(let i=210;i<x.length-H;i++){
 const w=x.slice(Math.max(0,i-299),i+1),bw=bx&&bx.length===x.length?bx.slice(Math.max(0,i-299),i+1):null,r=analyze(k,w,bw);
 if(r.sig!==prev&&r.sig!=='WAIT'){const m=(r.sig==='BUY'?1:-1)*(x[i+H].c-x[i].c);out.push({m,a:m/r.A})}prev=r.sig}
-const n=out.length;return{n,win:n?out.filter(o=>o.m>0).length/n:0,avg:n?out.reduce((s,o)=>s+o.a,0)/n:0,days:(x.length-218)*(tf==='15m'?15:60)/1440}}
+const n=out.length;return{n,win:n?out.filter(o=>o.m>0).length/n:0,avg:n?out.reduce((s,o)=>s+o.a,0)/n:0,days:(x.length-218)*TFM[tf]/1440}}
 function showBt(){const e=$('#btx');if(!e)return;const q=bt[cur+'|'+tf];
 const row=(k,z)=>`${MK[k].n}: ${z.n} calls, ${Math.round(z.win*100)}% in profit`;
-e.innerHTML=!q?'Checking past results...':!q.n?'The bot made no Buy or Sell calls in this period.':`On the ${tf} chart over the last ${Math.round(q.days)} days, the bot made <b>${q.n}</b> Buy or Sell calls. If you had closed each one after 8 candles, <b>${Math.round(q.win*100)}%</b> would have been in profit, with an average move of ${q.avg>=0?'+':''}${q.avg.toFixed(2)} ATR per call, before spread and fees. ${q.n<10?'That is too few calls to trust this number.':q.win<.5||q.avg<=0?'Past results are weak here, so treat new calls with extra caution.':'Past results are positive here, but the future can differ.'}`+(Object.keys(bt).filter(z=>z.endsWith('|'+tf)).length>1?'<p class="mu small">'+Object.keys(bt).filter(z=>z.endsWith('|'+tf)).map(z=>row(z.split('|')[0],bt[z])).join('<br>')+'</p>':'')}
+const hh=!q?'Checking past results...':!q.n?'The bot made no Buy or Sell calls in this period.':`On the ${tf} chart over the last ${Math.round(q.days)} days, the bot made <b>${q.n}</b> Buy or Sell calls. If you had closed each one after 8 candles, <b>${Math.round(q.win*100)}%</b> would have been in profit, with an average move of ${q.avg>=0?'+':''}${q.avg.toFixed(2)} ATR per call, before spread and fees. ${q.n<10?'That is too few calls to trust this number.':q.win<.5||q.avg<=0?'Past results are weak here, so treat new calls with extra caution.':'Past results are positive here, but the future can differ.'}`+(Object.keys(bt).filter(z=>z.endsWith('|'+tf)).length>1?'<p class="mu small">'+Object.keys(bt).filter(z=>z.endsWith('|'+tf)).map(z=>row(z.split('|')[0],bt[z])).join('<br>')+'</p>':'');e.innerHTML=hh;trDom(e)}
 
 async function jget(u){const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
 const kl=d=>d.map(a=>({t:a[0],o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}));
@@ -211,16 +361,16 @@ const M=MK[k],key=tdKey(k),L=lim(),cnt=Math.min(n,500);M.err='';
 if(M.td&&key&&Date.now()>(tdOff[k]||0))try{
 if(aMin(key)>=L.m||aDay(key)>=L.d)throw Error('API limit reached.');
 aHit(key);
-const d=await jget(`https://api.twelvedata.com/time_series?symbol=${M.td}&interval=${t==='15m'?'15min':'1h'}&outputsize=${cnt}&apikey=${encodeURIComponent(key)}`);
+const d=await jget(`https://api.twelvedata.com/time_series?symbol=${M.td}&interval=${TFD[t]}&outputsize=${cnt}&apikey=${encodeURIComponent(key)}`);
 if(d.status==='error'){tdOff[k]=Date.now()+6e5;throw Error(d.message)}
 const r=d.values.reverse().map(a=>({t:Date.parse(a.datetime.replace(' ','T')+'Z')||0,o:+a.open,h:+a.high,l:+a.low,c:+a.close,v:0}));r.src='Twelve Data '+M.td;return r}catch(e){M.err=e.message}
 const bk=((cfg().bk||{})[k]||'').trim();
-if(bk)try{const mins=t==='15m'?15:60,now=Math.floor(Date.now()/1000);
-const r=parseAny(await jget(bk.replace(/\{tfd\}/g,t==='15m'?'15min':'1h').replace(/\{tf\}/g,t).replace(/\{min\}/g,mins).replace(/\{limit\}/g,cnt).replace(/\{from\}/g,now-cnt*mins*60).replace(/\{to\}/g,now)));r.src='Backup API';return r}catch(e){M.err='Backup API: '+e.message}
+if(bk)try{const mins=TFM[t],now=Math.floor(Date.now()/1000);
+const r=parseAny(await jget(bk.replace(/\{tfd\}/g,TFD[t]).replace(/\{tf\}/g,t).replace(/\{min\}/g,mins).replace(/\{limit\}/g,cnt).replace(/\{from\}/g,now-cnt*mins*60).replace(/\{to\}/g,now)));r.src='Backup API';return r}catch(e){M.err='Backup API: '+e.message}
 const BL=[];if(M.fut)BL.push(['https://fapi.binance.com/fapi/v1/klines?symbol='+M.fut,'Binance '+M.fut+' futures']);
 if(M.sym)BL.push(['https://data-api.binance.vision/api/v3/klines?symbol='+M.sym,'Binance '+M.sym],['https://api.binance.com/api/v3/klines?symbol='+M.sym,'Binance '+M.sym]);
 for(const[u,src]of BL)try{const r=kl(await jget(`${u}&interval=${t}&limit=${n}`));r.src=src;return r}catch(e){}
-if(M.cb){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${t==='15m'?900:3600}`);const r=d.reverse().map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}));r.src='Coinbase '+M.cb;return r}
+if(M.cb&&TFG[t]){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${TFG[t]}`);const r=d.reverse().map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}));r.src='Coinbase '+M.cb;return r}
 throw Error('Could not load prices for '+M.n)}
 
 async function notify(k,r,px,tt){
@@ -231,11 +381,11 @@ try{const g=await navigator.serviceWorker.getRegistration();if(g)await g.showNot
 async function check(k,t,n){
 const x=await candles(k,t,n),b=k==='ETH'?await candles('BTC',t,n):null,r=analyze(k,x.slice(0,-1),b&&b.slice(0,-1)),key='n_'+k+t,old=(ls(key)||'').split('|');
 ls(key,r.sig+'|'+Date.now());
-const fresh=!!old[0]&&old[0]!==r.sig&&Date.now()-old[1]<(t==='15m'?30:120)*60000;
-if(cfg().nt&&nOn(k)&&nTf(t)&&fresh&&r.sig!=='WAIT')notify(k,r,x[x.length-1].c,t);
+const fresh=!!old[0]&&old[0]!==r.sig&&Date.now()-old[1]<TFM[t]*2*60000;
+if(!srvOn()&&cfg().nt&&nOn(k)&&nTf(t)&&fresh&&r.sig!=='WAIT')notify(k,r,x[x.length-1].c,t);
 if(t===ptf()&&!srvOn())paperStep(k,x,r,fresh);
 return[x,b]}
-async function scanAll(){if(srvOn())return;for(const k of Object.keys(MK))for(const t of ['15m','1h'])if(t===ptf()||(cfg().nt&&nOn(k)&&nTf(t)))try{await check(k,t,300)}catch(e){}showPaper()}
+async function scanAll(){if(srvOn())return;for(const k of Object.keys(MK))for(const t of TFS)if(t===ptf()||(cfg().nt&&nOn(k)&&nTf(t)))try{await check(k,t,300)}catch(e){}showPaper()}
 
 function spark(a){const cv=$('#cv'),w=cv.width=cv.clientWidth*2,H=cv.height=160,g=cv.getContext('2d'),lo=Math.min(...a),hi=Math.max(...a);
 g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
@@ -253,43 +403,48 @@ $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart
 <div class="bar"><i class="${col}" style="width:${r.conf}%"></i></div>
 <div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv1}${cmb}${lv2}</div>
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
+${C.pg===false?'':'<div class="card" id="pgc"><b>Paper balance graph</b><canvas id="pgv"></canvas><div class="mu small" id="pgn"></div></div>'}
 <div class="card" id="pp"></div>
 <div class="card"><b>Past results of the bot</b><p id="btx" class="small"></p></div>
 <div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>
 <details class="card"${dOpen?' open':''}><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets use ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
-spark(x.slice(-80).map(a=>a.c));showBt();showApi();showPaper();
+trDom($('#out'));spark(x.slice(-80).map(a=>a.c));showBt();showApi();showPaper();
 const bk=k+'|'+tf;if(!bt[bk]||Date.now()-bt[bk].ts>6e5)setTimeout(()=>{const q=backtest(k,x.slice(0,-1),bx&&bx.slice(0,-1));q.ts=Date.now();bt[bk]=q;showBt()},50);
-$('#st').textContent='Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+(tf==='15m'?'15 minutes':'hour')+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':'')+(M.td&&!tdKey(k)?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' API problem: '+M.err+' Using the next source.':'')}
-async function load(){const my=++tok;$('#st').textContent='Updating...';$('#rf').disabled=true;$('#rf').textContent='Refreshing...';
+$('#st').textContent=T('Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+({'15m':'15 minutes','30m':'30 minutes','1h':'hour','4h':'4 hours'})[tf]+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':'')+(M.td&&!tdKey(k)?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' API problem: '+M.err+' Using the next source.':''))}
+async function load(){const my=++tok;$('#st').textContent=T('Updating...');$('#rf').disabled=true;$('#rf').textContent=T('Refreshing...');
 try{const sp=srvOn()?loadSrv():0;const[x,b]=await check(cur,tf);await sp;if(my===tok)render(cur,x,b)}
-catch(e){if(my===tok)$('#st').textContent='Could not update: '+e.message+'. Check your connection, then tap Refresh.'}
-finally{if(my===tok){$('#rf').disabled=false;$('#rf').textContent='Refresh'}}}
+catch(e){if(my===tok)$('#st').textContent=T('Could not update: '+e.message+'. Check your connection, then tap Refresh.')}
+finally{if(my===tok){$('#rf').disabled=false;$('#rf').textContent=T('Refresh')}}}
 function sel(){document.querySelectorAll('[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tf))}
-$('#mk').innerHTML=['XAU','XAG','BTC','ETH'].map(k=>`<button data-k="${k}">${MK[k].n}</button>`).join('');
-$('#tfs').innerHTML=['15m','1h'].map(t=>`<button data-t="${t}">${t}</button>`).join('');
+$('#tfs').innerHTML=TFS.map(t=>`<button data-t="${t}">${t}</button>`).join('');
 $('#cts').innerHTML=Object.keys(MK).map(k=>`<label>${MK[k].ex} units per 1.00 lot<input id="c_${k}" type="number" inputmode="decimal"></label>`).join('');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!(b.dataset.k||b.dataset.t))return;if(b.dataset.k)cur=b.dataset.k;if(b.dataset.t)tf=b.dataset.t;sel();$('#out').innerHTML='';load()});
 document.addEventListener('change',e=>{if(e.target.id==='xp'&&last){xp[cur]=+e.target.value||0;render(...last)}});
-$('#nms').innerHTML=Object.keys(MK).map(k=>`<div class="ck"><input type="checkbox" id="m_${k}"><span>${MK[k].n}</span></div>`).join('');
-$('#ntfs').innerHTML=['15m','1h'].map(t=>`<div class="ck"><input type="checkbox" id="t_${t}"><span>${t}</span></div>`).join('');
+function buildSel(){
+$('#sls').innerHTML=slots().map((k,i)=>`<label>Slot ${i+1}<select data-sl="${i}" data-prev="${k}">${Object.keys(MK).map(z=>`<option value="${z}"${z===k?' selected':''}>${MK[z].n}</option>`).join('')}</select></label>`).join('');
+$('#nms').innerHTML=slots().map(k=>`<label><input type="checkbox" id="m_${k}"><span>${MK[k].n}</span></label>`).join('');
+$('#ntfs').innerHTML=TFS.map(t=>`<label><input type="checkbox" id="t_${t}"><span>${t}</span></label>`).join('')}
+document.addEventListener('change',e=>{const z=e.target;if(!z.dataset||z.dataset.sl===undefined)return;const old=z.dataset.prev;document.querySelectorAll('[data-sl]').forEach(o=>{if(o!==z&&o.value===z.value){o.value=old;o.dataset.prev=old}});z.dataset.prev=z.value});
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{applyTheme();if(last)render(...last)});
 document.addEventListener('toggle',e=>{if(e.target.closest&&e.target.closest('#out'))dOpen=e.target.open},true);
 $('#rf').onclick=()=>{tdOff={};load()};
-document.addEventListener('click',async e=>{const b=e.target;if(b.id!=='pf'||b.disabled)return;b.disabled=true;b.textContent='Refreshing...';try{if(srvOn())await loadSrv();else await Promise.all(Object.keys(MK).map(k=>check(k,ptf(),300).catch(()=>{})))}catch(x){}showPaper()});
+document.addEventListener('click',async e=>{const b=e.target;if(b.id!=='pf'||b.disabled)return;b.disabled=true;b.textContent=T('Refreshing...');try{if(srvOn())await loadSrv();else await Promise.all(Object.keys(MK).map(k=>check(k,ptf(),300).catch(()=>{})))}catch(x){}showPaper()});
 document.addEventListener('click',e=>{const b=e.target.closest('button[data-pt]');if(!b)return;ls('ptf',b.dataset.pt);showPaper()});
-document.addEventListener('click',async e=>{if(e.target.id!=='pr'||!confirm('Reset the paper account?'))return;
-if(srvOn()){const C=cfg();if(!C.sk){alert('Add your server password in Settings first.');return}
+document.addEventListener('click',async e=>{if(e.target.id!=='pr'||!confirm(T('Reset the paper account?')))return;
+if(srvOn()){const C=cfg();if(!C.sk){alert(T('Add your server password in Settings first.'));return}
 try{await jget(C.su+'/reset?tf='+ptf()+'&k='+encodeURIComponent(C.sk));await loadSrv()}catch(x){alert('Could not reset: '+x.message+(x.message==='HTTP 403'?' (wrong server password)':''))}}
 else ls('paper','');showPaper()});
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#b_XAG').value=(C.bk||{}).XAG||'';$('#k_XAU').value=tdKey('XAU');$('#k_XAG').value=tdKey('XAG');$('#su').value=C.su||'';$('#sk').value=C.sk||'';$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#nt').checked=!!C.nt;Object.keys(MK).forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'dark';['15m','1h'].forEach(t=>$('#t_'+t).checked=nTf(t));$('#dl').showModal()};
-$('#sv').onclick=async()=>{ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,su:(u=>u&&!/^https?:\/\//.test(u)?'https://'+u:u)($('#su').value.trim().replace(/\/+$/,'')),sk:$('#sk').value.trim(),bk:{XAU:$('#b_XAU').value.trim(),XAG:$('#b_XAG').value.trim()},th:$('#thm').value,ntf:['15m','1h'].filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k).checked])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim(),XAG:$('#k_XAG').value.trim()}));
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};buildSel();$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#b_XAG').value=(C.bk||{}).XAG||'';$('#k_XAU').value=tdKey('XAU');$('#k_XAG').value=tdKey('XAG');$('#su').value=C.su||'';$('#sk').value=C.sk||'';$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#pbal').value=C.pbal||10000;$('#prisk').value=C.prisk||1;$('#pg').checked=C.pg!==false;$('#nt').checked=!!C.nt;slots().forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'dark';$('#lg').value=C.lg||'en';TFS.forEach(t=>$('#t_'+t).checked=nTf(t));trDom($('#dl'));$('#dl').showModal()};
+$('#sv').onclick=async()=>{const lg=$('#lg').value,oldLg=cfg().lg||'en';
+ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,su:(u=>u&&!/^https?:\/\//.test(u)?'https://'+u:u)($('#su').value.trim().replace(/\/+$/,'')),sk:$('#sk').value.trim(),bk:{XAU:$('#b_XAU').value.trim(),XAG:$('#b_XAG').value.trim()},th:$('#thm').value,lg,pbal:+$('#pbal').value||10000,prisk:+$('#prisk').value||1,pg:$('#pg').checked,sl:[...document.querySelectorAll('[data-sl]')].map(z=>z.value),ntf:TFS.filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k)?$('#m_'+k).checked:nOn(k)])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim(),XAG:$('#k_XAG').value.trim()}));
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
-if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent='Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.';$('#bn').hidden=false}
-$('#dl').close();applyTheme();tdOff={};load();scanAll()};
+if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent=T('Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.');$('#bn').hidden=false}
+await pushSrv();
+$('#dl').close();applyTheme();tdOff={};
+if(lg!==oldLg){location.reload();return}
+if(!slots().includes(cur))cur=slots()[0];buildMk();load();scanAll()};
 setInterval(showApi,1000);
-window.gtInit=()=>new google.translate.TranslateElement({pageLanguage:'en',autoDisplay:false},'gt');
-const gs=document.createElement('script');gs.src='https://translate.google.com/translate_a/element.js?cb=gtInit';gs.async=true;document.head.appendChild(gs);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 setInterval(scanAll,18e4);
-applyTheme();sel();load();scanAll();
+applyTheme();if(!slots().includes(cur))cur=slots()[0];buildMk();trDom(document.body);load();scanAll();
 </script></body></html>
