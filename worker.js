@@ -6,7 +6,7 @@ const MK={
 BTC:{n:'Bitcoin',ct:1,sym:'BTCUSDT',cb:'BTC-USD',kind:'BTC',max:6,thr:3,q:.1},
 ETH:{n:'Ethereum',ct:1,sym:'ETHUSDT',cb:'ETH-USD',kind:'ETH',max:8,thr:4,q:.12},
 XAU:{n:'Gold',ct:100,td:'XAU/USD',fut:'XAUUSDT',sym:'PAXGUSDT',kind:'XAU',wk:1,max:5,thr:3,q:.04},
-XAG:{n:'Silver',ct:5000,td:'XAG/USD',fut:'XAGUSDT',kind:'XAU',wk:1,max:5,thr:3,q:.08}};
+XAG:{n:'Silver',ct:5000,fut:'XAGUSDT',kind:'XAU',wk:1,skip:1,max:5,thr:3,q:.08}};
 const ORDER=['XAU','XAG','BTC','ETH'];
 
 // ---- strategy (copied from index.html) ----
@@ -51,9 +51,16 @@ return{sig,sc,note,F,A,conf:Math.round(Math.min(1,Math.abs(sc)/M.max)*100)}}
 
 
 // ---- data ----
-const TFS=['15m','30m','1h','4h'],TD_IV={'15m':'15min','30m':'30min','1h':'1h','4h':'4h'},CB_G={'15m':900,'1h':3600};
+const TFS=['15m','30m','1h','4h'],TD_IV={'15m':'15min','30m':'30min','1h':'1h','4h':'4h'},CB_G={'15m':900,'1h':3600},CB_A={'30m':['15m',2],'4h':['1h',4]},TF_MS={'15m':9e5,'1h':36e5};
 const jget=async u=>{const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()};
 const kl=d=>d.map(a=>({t:a[0],o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}));
+async function cbGet(id,g,pages){let end=Date.now(),all=[];
+for(let i=0;i<pages;i++){const st=end-300*g*1000,d=await jget(`https://api.exchange.coinbase.com/products/${id}/candles?granularity=${g}&start=${new Date(st).toISOString()}&end=${new Date(end).toISOString()}`);
+all=all.concat(d.map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]})));end=st}
+const seen={};return all.sort((a,b)=>a.t-b.t).filter(a=>seen[a.t]?0:(seen[a.t]=1))}
+function agg(a,m,ms){const out=[];let cur=null;
+for(const c of a){const b=Math.floor(c.t/(ms*m))*ms*m;if(cur&&cur.t===b){cur.h=Math.max(cur.h,c.h);cur.l=Math.min(cur.l,c.l);cur.c=c.c;cur.v+=c.v}else{if(cur)out.push(cur);cur={t:b,o:c.o,h:c.h,l:c.l,c:c.c,v:c.v}}}
+if(cur)out.push(cur);return out}
 async function candles(k,t,env,n=300){
 const M=MK[k];
 if(M.td&&env.TD_KEY)try{
@@ -64,10 +71,12 @@ const BL=[];if(M.fut)BL.push(['https://fapi.binance.com/fapi/v1/klines?symbol='+
 if(M.sym)BL.push(['https://data-api.binance.vision/api/v3/klines?symbol='+M.sym,'Binance '+M.sym],['https://api.binance.com/api/v3/klines?symbol='+M.sym,'Binance '+M.sym]);
 for(const[u,src]of BL)try{const r=kl(await jget(`${u}&interval=${t}&limit=${n}`));r.src=src;return r}catch(e){}
 if(M.cb&&CB_G[t]){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${CB_G[t]}`);const r=d.reverse().map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}));r.src='Coinbase '+M.cb;return r}
+if(M.cb&&CB_A[t]){const[bt,m]=CB_A[t],r=agg(await cbGet(M.cb,CB_G[bt],t==='4h'?2:1),m,TF_MS[bt]);r.src='Coinbase '+M.cb+' ('+bt+' candles joined)';return r}
 throw Error('Could not load prices for '+M.n+(M.err?' ('+M.err+')':''))}
 
 // ---- settings: the app sends them to /config; variables are the fallback ----
 const getC=async env=>(await env.KV.get('cfg','json'))||{};
+const ptfOf=C=>TFS.includes(C.ptf)?C.ptf:'1h';
 const balOf=(C,env)=>+C.bal||+env.BAL||10000;
 const riskOf=(C,env)=>+C.risk||+env.RISK||1;
 const ctOf=(k,env,C)=>+((C.ct||{})[k])||+env['CT_'+k]||MK[k].ct;
@@ -99,25 +108,27 @@ await fetch('https://ntfy.sh/'+encodeURIComponent(env.NTFY_TOPIC),{method:'POST'
 
 // ---- one check: one market on one timeframe ----
 const WIN={'15m':100,'30m':100,'1h':180,'4h':540};
-async function run(k,tf,env,force){
+async function run(k,tf,env,force,C0){
 const M=MK[k];
+if(M.skip)return{k,tf,skipped:'no price source on the server'};
 if(M.wk&&closed()&&!force)return{k,tf,skipped:'market closed'};
 M.err='';
 try{
-const C=await getC(env);
+const C=C0||await getC(env);
 const x=await candles(k,tf,env),b=k==='ETH'?await candles('BTC',tf,env):null;
 const r=analyze(k,x.slice(0,-1),b&&b.slice(0,-1)),px=x[x.length-1].c,now=Date.now();
 const lk=`last:${k}:${tf}`,old=await env.KV.get(lk,'json');
 const fresh=!!old&&old.sig!==r.sig&&now-old.t<WIN[tf]*60000;
 if(!old||old.sig!==r.sig||now-old.t>36e5)await env.KV.put(lk,JSON.stringify({sig:r.sig,t:now}));
 if(env.NTFY_TOPIC&&fresh&&r.sig!=='WAIT'&&wants(C,env,k,tf))await notify(env,k,r,px,tf);
-const pk='paper:'+tf;let P=await env.KV.get(pk,'json'),isNew=!P;if(!P)P=newPaper(env,C);
-if(paperStep(P,k,x,r,fresh,env,C)||isNew)await env.KV.put(pk,JSON.stringify(P));
+let open=0;
+if(tf===ptfOf(C)){const pk='paper:'+tf;let P=await env.KV.get(pk,'json'),isNew=!P;if(!P)P=newPaper(env,C);
+if(paperStep(P,k,x,r,fresh,env,C)||isNew)await env.KV.put(pk,JSON.stringify(P));open=P.open[k]?1:0}
 const xk='px:'+k,old2=await env.KV.get(xk,'json');
 if(!old2||now-old2.t>18e5)await env.KV.put(xk,JSON.stringify({p:px,t:now,src:x.src}));
 const ek='err:'+k,oe=await env.KV.get(ek);
 if(M.err&&oe!==M.err)await env.KV.put(ek,M.err);else if(!M.err&&oe)await env.KV.delete(ek);
-return{k,tf,sig:r.sig,score:r.sc,price:px,source:x.src,fresh,open:P.open[k]?1:0}
+return{k,tf,sig:r.sig,score:r.sc,price:px,source:x.src,fresh,open}
 }catch(e){
 try{const ek='err:'+k,oe=await env.KV.get(ek),m=e.message.slice(0,200);if(oe!==m)await env.KV.put(ek,m)}catch(z){}
 return{k,tf,error:e.message}}}
@@ -125,9 +136,9 @@ return{k,tf,error:e.message}}}
 // ---- Worker entry ----
 export default{
 async scheduled(c,env){
-const k=ORDER[new Date(c.scheduledTime).getUTCMinutes()%5];if(!k)return;
-const tf=TFS[Math.floor(c.scheduledTime/300000)%4];
-await run(k,tf,env)},
+const k=ORDER[new Date(c.scheduledTime).getUTCMinutes()%5];if(!k||MK[k].skip)return;
+const C=await getC(env),pt=ptfOf(C),need=TFS.filter(t=>t===pt||wants(C,env,k,t));
+await run(k,need[Math.floor(c.scheduledTime/300000)%need.length],env,false,C)},
 async fetch(req,env){
 const u=new URL(req.url),H={'Access-Control-Allow-Origin':'*','Content-Type':'application/json'};
 if(req.method==='OPTIONS')return new Response(null,{headers:{...H,'Access-Control-Allow-Headers':'*'}});
@@ -139,7 +150,7 @@ const C=await getC(env);
 const rest=await Promise.all([...TFS.map(t=>env.KV.get('paper:'+t,'json')),...ORDER.map(k=>env.KV.get('px:'+k,'json')),...ORDER.map(k=>env.KV.get('err:'+k))]);
 const paper={},px={},err={},ct={};TFS.forEach((t,i)=>paper[t]=rest[i]||newPaper(env,C));
 ORDER.forEach((k,i)=>{if(rest[4+i])px[k]=rest[4+i];if(rest[8+i])err[k]=rest[8+i];ct[k]=ctOf(k,env,C)});
-return J({v:2,now:Date.now(),paper,px,err,ct})}
+return J({v:3,now:Date.now(),ptf:ptfOf(C),paper,px,err,ct})}
 if(u.pathname==='/config'){if(!ok)return J({error:'wrong password'},403);
 if(req.method!=='POST')return J({error:'use POST'},405);
 let d;try{d=JSON.parse(await req.text())}catch(e){return J({error:'bad data'},400)}
@@ -148,7 +159,8 @@ if(d.nm&&typeof d.nm==='object'){o.nm={};for(const k of ORDER)if(typeof d.nm[k]=
 if(Array.isArray(d.ntf))o.ntf=d.ntf.filter(t=>TFS.includes(t));
 if(+d.bal>0)o.bal=+d.bal;if(+d.risk>0&&+d.risk<=100)o.risk=+d.risk;
 if(d.ct&&typeof d.ct==='object'){o.ct={};for(const k of ORDER)if(+d.ct[k]>0)o.ct[k]=+d.ct[k]}
-await env.KV.put('cfg',JSON.stringify(o));return J({saved:true})}
+if(TFS.includes(d.ptf))o.ptf=d.ptf;
+await env.KV.put('cfg',JSON.stringify({...(await getC(env)),...o}));return J({saved:true})}
 if(u.pathname==='/test'){if(!ok)return J({error:'wrong password'},403);
 await fetch('https://ntfy.sh/'+encodeURIComponent(env.NTFY_TOPIC),{method:'POST',body:'Test from your bot server. Alerts work.',headers:{Title:'Bot test',Priority:'high'}});return J({sent:true})}
 if(u.pathname==='/run'){if(!ok)return J({error:'wrong password'},403);
