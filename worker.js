@@ -150,7 +150,7 @@ const C=await getC(env);
 const rest=await Promise.all([...TFS.map(t=>env.KV.get('paper:'+t,'json')),...ORDER.map(k=>env.KV.get('px:'+k,'json')),...ORDER.map(k=>env.KV.get('err:'+k))]);
 const paper={},px={},err={},ct={};TFS.forEach((t,i)=>paper[t]=rest[i]||newPaper(env,C));
 ORDER.forEach((k,i)=>{if(rest[4+i])px[k]=rest[4+i];if(rest[8+i])err[k]=rest[8+i];ct[k]=ctOf(k,env,C)});
-return J({v:3,now:Date.now(),ptf:ptfOf(C),paper,px,err,ct})}
+return J({v:4,now:Date.now(),ptf:ptfOf(C),live:C.live===true,paper,px,err,ct})}
 if(u.pathname==='/config'){if(!ok)return J({error:'wrong password'},403);
 if(req.method!=='POST')return J({error:'use POST'},405);
 let d;try{d=JSON.parse(await req.text())}catch(e){return J({error:'bad data'},400)}
@@ -160,7 +160,13 @@ if(Array.isArray(d.ntf))o.ntf=d.ntf.filter(t=>TFS.includes(t));
 if(+d.bal>0)o.bal=+d.bal;if(+d.risk>0&&+d.risk<=100)o.risk=+d.risk;
 if(d.ct&&typeof d.ct==='object'){o.ct={};for(const k of ORDER)if(+d.ct[k]>0)o.ct[k]=+d.ct[k]}
 if(TFS.includes(d.ptf))o.ptf=d.ptf;
+if(typeof d.live==='boolean')o.live=d.live;
 await env.KV.put('cfg',JSON.stringify({...(await getC(env)),...o}));return J({saved:true})}
+if(u.pathname==='/orders'){if(!ok)return new Response('wrong password',{status:403,headers:{'Content-Type':'text/plain'}});
+const C=await getC(env),pt=ptfOf(C),on=C.live===true,P=on?await env.KV.get('paper:'+pt,'json'):null;
+let out=`BOT1|${Date.now()}|${pt}|${on?'ON':'OFF'}`;
+if(P)for(const k of ORDER){const o=P.open[k];if(o&&!MK[k].skip)out+=`\n${k}|${o.d>0?'BUY':'SELL'}|${o.e}|${o.s}|${o.g}|${o.t}`}
+return new Response(out,{headers:{'Content-Type':'text/plain'}})}
 if(u.pathname==='/test'){if(!ok)return J({error:'wrong password'},403);
 await fetch('https://ntfy.sh/'+encodeURIComponent(env.NTFY_TOPIC),{method:'POST',body:'Test from your bot server. Alerts work.',headers:{Title:'Bot test',Priority:'high'}});return J({sent:true})}
 if(u.pathname==='/run'){if(!ok)return J({error:'wrong password'},403);

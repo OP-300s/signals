@@ -1,0 +1,235 @@
+//+------------------------------------------------------------------+
+//| MyBotCopier - copies the open paper trades of My Bot to MT5      |
+//| Safe by default: demo accounts only, small risk, hard limits.    |
+//+------------------------------------------------------------------+
+#property copyright "My Bot"
+#property version   "1.00"
+#include <Trade\Trade.mqh>
+
+input string ServerUrl        = "https://my-bot-server.yourname.workers.dev"; // your server address
+input string Password         = "";      // your server password (the ntfy topic)
+input bool   AllowRealAccount = false;   // false = demo accounts only
+input bool   TradingEnabled   = true;    // false = never open new trades
+input double RiskPercent      = 0.5;     // risk per trade, % of balance
+input int    MaxOpenTrades    = 2;       // most real trades open at once
+input double MaxDailyLossPct  = 3.0;     // stop opening new trades after this loss in a day
+input int    MaxAgeMinutes    = 15;      // only copy paper trades opened in the last X minutes
+input double MaxSlipFraction  = 0.5;     // skip if price is further than this x stop distance from the paper entry
+input int    PollSeconds      = 30;      // how often to ask the server
+input string SymGold          = "XAUUSD"; // exact Gold symbol name in your MT5
+input string SymBTC           = "BTCUSD"; // exact Bitcoin symbol name in your MT5
+input string SymETH           = "ETHUSD"; // exact Ethereum symbol name in your MT5
+input long   MagicNumber      = 20261106; // tag that marks trades made by this program
+
+CTrade trade;
+
+//--- helpers that look at my own open trades
+int CountMine()
+{
+   int c=0;
+   for(int i=PositionsTotal()-1;i>=0;i--)
+   {
+      ulong tk=PositionGetTicket(i);
+      if(tk==0) continue;
+      if(PositionGetInteger(POSITION_MAGIC)==MagicNumber) c++;
+   }
+   return(c);
+}
+
+bool OpenOnSymbol(string sym)
+{
+   for(int i=PositionsTotal()-1;i>=0;i--)
+   {
+      ulong tk=PositionGetTicket(i);
+      if(tk==0) continue;
+      if(PositionGetInteger(POSITION_MAGIC)!=MagicNumber) continue;
+      if(PositionGetString(POSITION_SYMBOL)==sym) return(true);
+   }
+   return(false);
+}
+
+bool DailyLossHit()
+{
+   MqlDateTime d;
+   TimeToStruct(TimeCurrent(),d);
+   string key="MB_DAY_"+IntegerToString(d.year*10000+d.mon*100+d.day);
+   if(!GlobalVariableCheck(key)) GlobalVariableSet(key,AccountInfoDouble(ACCOUNT_BALANCE));
+   double start=GlobalVariableGet(key);
+   if(start<=0) return(false);
+   double eq=AccountInfoDouble(ACCOUNT_EQUITY);
+   return(((start-eq)/start*100.0)>=MaxDailyLossPct);
+}
+
+double LotsFor(string sym,double slDist)
+{
+   double tickSize=SymbolInfoDouble(sym,SYMBOL_TRADE_TICK_SIZE);
+   double tickVal=SymbolInfoDouble(sym,SYMBOL_TRADE_TICK_VALUE_LOSS);
+   if(tickVal<=0) tickVal=SymbolInfoDouble(sym,SYMBOL_TRADE_TICK_VALUE);
+   if(tickSize<=0 || tickVal<=0) return(0);
+   double lossPerLot=slDist/tickSize*tickVal;
+   if(lossPerLot<=0) return(0);
+   double risk=AccountInfoDouble(ACCOUNT_BALANCE)*RiskPercent/100.0;
+   double lots=risk/lossPerLot;
+   double step=SymbolInfoDouble(sym,SYMBOL_VOLUME_STEP);
+   double minL=SymbolInfoDouble(sym,SYMBOL_VOLUME_MIN);
+   double maxL=SymbolInfoDouble(sym,SYMBOL_VOLUME_MAX);
+   if(step<=0) return(0);
+   lots=MathFloor(lots/step)*step;
+   if(lots<minL) return(0);          // the smallest allowed lot would risk more than your limit
+   if(lots>maxL) lots=maxL;
+   int dg=(int)MathMax(0,MathRound(-MathLog10(step)));
+   return(NormalizeDouble(lots,dg));
+}
+
+//--- open one real trade that copies a paper trade
+void TryOpen(string sym,bool buy,double entry,double sl,double tp,string cmt,long ageMs)
+{
+   if(ageMs>(long)MaxAgeMinutes*60000) return;      // too old: never copy late
+   string seen="MB_"+cmt;
+   if(GlobalVariableCheck(seen)) return;            // already copied once (even if it closed since)
+   if(CountMine()>=MaxOpenTrades) return;
+   if(OpenOnSymbol(sym)) return;                    // one trade per market
+   if(DailyLossHit()) return;
+   if(!SymbolSelect(sym,true))
+   {
+      Print("My Bot: symbol not found in MT5: ",sym);
+      return;
+   }
+   double slDist=MathAbs(entry-sl);
+   double tpDist=MathAbs(tp-entry);
+   if(slDist<=0 || tpDist<=0) return;
+   MqlTick tk;
+   if(!SymbolInfoTick(sym,tk)) return;
+   double price=buy ? tk.ask : tk.bid;
+   if(MathAbs(price-entry)>MaxSlipFraction*slDist)
+   {
+      Print("My Bot: price on ",sym," is too far from the paper entry, skipped.");
+      return;
+   }
+   double lots=LotsFor(sym,slDist);
+   if(lots<=0)
+   {
+      Print("My Bot: the smallest lot would risk more than ",RiskPercent,"% on ",sym,", skipped.");
+      return;
+   }
+   int dgt=(int)SymbolInfoInteger(sym,SYMBOL_DIGITS);
+   double slP=NormalizeDouble(buy ? price-slDist : price+slDist,dgt);
+   double tpP=NormalizeDouble(buy ? price+tpDist : price-tpDist,dgt);
+   bool ok;
+   if(buy) ok=trade.Buy(lots,sym,0.0,slP,tpP,cmt);
+   else    ok=trade.Sell(lots,sym,0.0,slP,tpP,cmt);
+   GlobalVariableSet(seen,1);
+   Print("My Bot: ",(buy ? "BUY " : "SELL "),sym," ",lots," lots, stop ",slP,", target ",tpP,", sent ",ok,", code ",trade.ResultRetcode());
+}
+
+//--- close real trades whose paper trade has closed
+void CloseMissing(string want)
+{
+   for(int i=PositionsTotal()-1;i>=0;i--)
+   {
+      ulong tk=PositionGetTicket(i);
+      if(tk==0) continue;
+      if(PositionGetInteger(POSITION_MAGIC)!=MagicNumber) continue;
+      string c=PositionGetString(POSITION_COMMENT);
+      if(StringFind(c,"BOT")!=0) continue;
+      if(StringFind(want,"|"+c+"|")<0)
+      {
+         bool ok=trade.PositionClose(tk);
+         Print("My Bot: closed ",c," because the paper bot closed it, result ",ok);
+      }
+   }
+}
+//--- ask the server
+string Fetch()
+{
+   string url=ServerUrl+"/orders?k="+Password;
+   char post[];
+   char result[];
+   string rh;
+   ResetLastError();
+   int code=WebRequest("GET",url,"",10000,post,result,rh);
+   if(code!=200)
+   {
+      Print("My Bot: server answered ",code,", error ",GetLastError(),". Check the address list in Tools, Options, Expert Advisors.");
+      Comment("My Bot: cannot reach the server (code ",code,")");
+      return("");
+   }
+   return(CharArrayToString(result,0,WHOLE_ARRAY,CP_UTF8));
+}
+
+string SymbolFor(string key)
+{
+   if(key=="XAU") return(SymGold);
+   if(key=="BTC") return(SymBTC);
+   if(key=="ETH") return(SymETH);
+   return("");
+}
+
+void Poll()
+{
+   if(!TerminalInfoInteger(TERMINAL_TRADE_ALLOWED) || !MQLInfoInteger(MQL_TRADE_ALLOWED))
+      Print("My Bot: Algo Trading is switched off in MT5, so no orders can be placed.");
+   string txt=Fetch();
+   if(StringLen(txt)==0) return;
+   string lines[];
+   int n=StringSplit(txt,'\n',lines);
+   if(n<1) return;
+   string head[];
+   if(StringSplit(lines[0],'|',head)<4 || head[0]!="BOT1")
+   {
+      Print("My Bot: unexpected answer from the server.");
+      return;
+   }
+   long nowMs=StringToInteger(head[1]);
+   bool on=(head[3]=="ON");
+   Comment("My Bot copier | last check ",TimeToString(TimeLocal(),TIME_SECONDS)," | server feed ",head[3]," | my open trades ",CountMine());
+   if(!on) return;            // feed is OFF: do nothing at all, keep existing trades as they are
+   string want="";
+   for(int i=1;i<n;i++)
+   {
+      string f[];
+      if(StringSplit(lines[i],'|',f)<6) continue;
+      string sym=SymbolFor(f[0]);
+      if(sym=="") continue;
+      string cmt="BOT"+f[5];
+      want+="|"+cmt+"|";
+      if(!TradingEnabled) continue;
+      long ageMs=nowMs-StringToInteger(f[5]);
+      TryOpen(sym,(f[1]=="BUY"),StringToDouble(f[2]),StringToDouble(f[3]),StringToDouble(f[4]),cmt,ageMs);
+   }
+   CloseMissing(want);
+}
+
+//--- start
+int OnInit()
+{
+   if(StringLen(Password)==0 || StringFind(ServerUrl,"https://")!=0)
+   {
+      Alert("My Bot: fill in ServerUrl (starting with https://) and Password in the settings.");
+      return(INIT_PARAMETERS_INCORRECT);
+   }
+   bool demo=(AccountInfoInteger(ACCOUNT_TRADE_MODE)==ACCOUNT_TRADE_MODE_DEMO);
+   if(!demo && !AllowRealAccount)
+   {
+      Alert("My Bot: this is a REAL account, so trading is blocked. Use a demo account, or set AllowRealAccount to true.");
+      return(INIT_FAILED);
+   }
+   trade.SetExpertMagicNumber(MagicNumber);
+   trade.SetDeviationInPoints(50);
+   EventSetTimer(PollSeconds);
+   Print("My Bot copier started. Demo account: ",demo);
+   Comment("My Bot copier started. Waiting for the first check...");
+   return(INIT_SUCCEEDED);
+}
+
+void OnDeinit(const int reason)
+{
+   EventKillTimer();
+   Comment("");
+}
+
+void OnTimer()
+{
+   Poll();
+}
+
