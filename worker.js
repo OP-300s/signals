@@ -1,5 +1,5 @@
 // My Bot server for Cloudflare Workers (free plan).
-// The strategy code below is copied from index.html. Do not edit it.
+// The strategy code below (indicators and candlestick patterns) is copied from index.html. Do not edit it.
 // Needs: KV binding named KV, variables TD_KEY, NTFY_TOPIC (BAL and RISK are optional now; the app sends them).
 
 const MK={
@@ -48,6 +48,37 @@ let sig=sc>=M.thr?'BUY':sc<=-M.thr?'SELL':'WAIT',note='';
 if(quiet&&sig!=='WAIT'){sig='WAIT';note='The market is too quiet right now: expected moves are too small to cover trading costs.'}
 else if(sig==='WAIT')note=`Score ${sc>0?'+':''}${sc} has not reached ±${M.thr}. The factors are mixed or weak, so waiting is the better move.`;
 return{sig,sc,note,F,A,conf:Math.round(Math.min(1,Math.abs(sc)/M.max)*100)}}
+
+
+// ---- candlestick patterns (long wick family) ----
+function candle(k,x,tf){
+const AT=atr(x),i=x.length-1,A=AT[i],NEAR=.5,S0={'15m':1,'30m':2,'1h':3,'4h':4}[tf]||1,F=[];
+const wk=(a,up)=>{const r=a.h-a.l;return r>0&&(up?a.h-Math.max(a.o,a.c):Math.min(a.o,a.c)-a.l)/r>=.7};
+const grp=p=>{if(p<7)return null;for(const up of[false,true])if(wk(x[p],up)){let s=p;while(s>0&&wk(x[s-1],up))s--;return{up,s,p,len:p-s+1}}return null};
+const chk=g=>{const{up,s,p}=g,Ap=AT[p],seg=x.slice(s,p+1),ext=up?Math.max(...seg.map(a=>a.h)):Math.min(...seg.map(a=>a.l)),
+trend=s>=6&&(up?x[s-1].c-x[s-6].c>=Ap:x[s-6].c-x[s-1].c>=Ap),
+bt=up?Math.min(...seg.map(a=>Math.min(a.o,a.c))):Math.max(...seg.map(a=>Math.max(a.o,a.c))),tol=NEAR*Ap,zl=up?bt-tol:ext-tol,zh=up?ext+tol:bt+tol;
+let lvl=null,dist=Infinity;
+for(let j=Math.max(3,s-150);j<=s-4;j++){const v=up?x[j].h:x[j].l;let ok=true;for(let q=j-3;q<=j+3&&ok;q++)if(q!==j&&(up?x[q].h>=v:x[q].l<=v))ok=false;if(ok&&v>=zl&&v<=zh&&Math.abs(v-ext)<dist){dist=Math.abs(v-ext);lvl=v}}
+return{trend,near:lvl!==null,lvl}};
+let g=grp(i);const pending=!!g;if(!g)g=grp(i-1);
+if(!g)return{sig:'WAIT',sc:0,note:'No pattern found, so the bot waits.',F:[{n:'Pattern',s:0,t:'No long wick candle in the latest candles.'}],A,conf:0,max:5,pat:''};
+const cx=chk(g),up=g.up,a=x[g.p],seg=x.slice(g.s,g.p+1),
+name=up?(g.len>1?'Multiple inverted long wick candles':'Inverted long wick candle'):(g.len>1?'Multiple long wick candles':'Long wick candle'),
+pct=Math.round(100*(up?a.h-Math.max(a.o,a.c):Math.min(a.o,a.c)-a.l)/(a.h-a.l)),
+str=S0+(g.len>1?1:0);
+F.push({n:'Pattern',s:1,t:`${name} found. The wick is ${pct}% of the candle.`+(g.len>1?` It has ${g.len} candles in a row.`:'')});
+F.push({n:'Market direction',s:cx.trend?1:-1,t:up?(cx.trend?'The market was rising before the pattern.':'The market was not rising before the pattern, so it does not count.'):(cx.trend?'The market was falling before the pattern.':'The market was not falling before the pattern, so it does not count.')});
+F.push({n:'Key level',s:cx.near?1:-1,t:up?(cx.near?`The high is near a resistance level at ${p(cx.lvl)}.`:'No resistance level is near the high, so the pattern does not count.'):(cx.near?`The low is near a support level at ${p(cx.lvl)}.`:'No support level is near the low, so the pattern does not count.')});
+let sig='WAIT',note;
+if(pending){F.push({n:'Confirmation',s:0,t:up?'Waiting for the next candle to close below the pattern.':'Waiting for the next candle to close above the pattern.'});
+note=cx.trend&&cx.near?'A pattern is forming. Waiting for the next candle to close to confirm it.':'A long wick candle was found, but the conditions are not met, so the bot waits.'}
+else{const ok=up?x[i].c<Math.min(...seg.map(z=>z.l)):x[i].c>Math.max(...seg.map(z=>z.h));
+F.push({n:'Confirmation',s:ok?1:-1,t:up?(ok?'The next candle closed below the pattern, so it is confirmed.':'The next candle did not close below the pattern, so it is not confirmed.'):(ok?'The next candle closed above the pattern, so it is confirmed.':'The next candle did not close above the pattern, so it is not confirmed.')});
+if(cx.trend&&cx.near&&ok){sig=up?'SELL':'BUY';note='The pattern, the key level and the confirmation all agree.'}
+else note=cx.trend&&cx.near?'The pattern was not confirmed, so the bot waits.':'A long wick candle was found, but the conditions are not met, so the bot waits.'}
+F.push({n:'Timeframe',s:1,t:`${tf} chart: strength ${str} out of 5. Bigger timeframes are more reliable.`});
+return{sig,sc:sig==='BUY'?str:sig==='SELL'?-str:0,note,F,A,conf:Math.round(str/5*100),max:5,pat:name}}
 
 
 // ---- data ----
@@ -115,9 +146,10 @@ if(M.wk&&closed()&&!force)return{k,tf,skipped:'market closed'};
 M.err='';
 try{
 const C=C0||await getC(env);
-const x=await candles(k,tf,env),b=k==='ETH'?await candles('BTC',tf,env):null;
-const r=analyze(k,x.slice(0,-1),b&&b.slice(0,-1)),px=x[x.length-1].c,now=Date.now();
-const lk=`last:${k}:${tf}`,old=await env.KV.get(lk,'json');
+const st=C.st==='ind'?'ind':'candle';
+const x=await candles(k,tf,env),b=(k==='ETH'&&st==='ind')?await candles('BTC',tf,env):null;
+const xs=x.slice(0,-1),r=st==='ind'?analyze(k,xs,b&&b.slice(0,-1)):candle(k,xs,tf),px=x[x.length-1].c,now=Date.now();
+const lk=`last:${st==='ind'?'':'c:'}${k}:${tf}`,old=await env.KV.get(lk,'json');
 const fresh=!!old&&old.sig!==r.sig&&now-old.t<WIN[tf]*60000;
 if(!old||old.sig!==r.sig||now-old.t>36e5)await env.KV.put(lk,JSON.stringify({sig:r.sig,t:now}));
 if(env.NTFY_TOPIC&&fresh&&r.sig!=='WAIT'&&wants(C,env,k,tf))await notify(env,k,r,px,tf);
@@ -150,7 +182,7 @@ const C=await getC(env);
 const rest=await Promise.all([...TFS.map(t=>env.KV.get('paper:'+t,'json')),...ORDER.map(k=>env.KV.get('px:'+k,'json')),...ORDER.map(k=>env.KV.get('err:'+k))]);
 const paper={},px={},err={},ct={};TFS.forEach((t,i)=>paper[t]=rest[i]||newPaper(env,C));
 ORDER.forEach((k,i)=>{if(rest[4+i])px[k]=rest[4+i];if(rest[8+i])err[k]=rest[8+i];ct[k]=ctOf(k,env,C)});
-return J({v:4,now:Date.now(),ptf:ptfOf(C),live:C.live===true,paper,px,err,ct})}
+return J({v:5,now:Date.now(),ptf:ptfOf(C),live:C.live===true,st:C.st==='ind'?'ind':'candle',paper,px,err,ct})}
 if(u.pathname==='/config'){if(!ok)return J({error:'wrong password'},403);
 if(req.method!=='POST')return J({error:'use POST'},405);
 let d;try{d=JSON.parse(await req.text())}catch(e){return J({error:'bad data'},400)}
@@ -161,6 +193,7 @@ if(+d.bal>0)o.bal=+d.bal;if(+d.risk>0&&+d.risk<=100)o.risk=+d.risk;
 if(d.ct&&typeof d.ct==='object'){o.ct={};for(const k of ORDER)if(+d.ct[k]>0)o.ct[k]=+d.ct[k]}
 if(TFS.includes(d.ptf))o.ptf=d.ptf;
 if(typeof d.live==='boolean')o.live=d.live;
+if(d.st==='ind'||d.st==='candle')o.st=d.st;
 await env.KV.put('cfg',JSON.stringify({...(await getC(env)),...o}));return J({saved:true})}
 if(u.pathname==='/orders'){if(!ok)return new Response('wrong password',{status:403,headers:{'Content-Type':'text/plain'}});
 const C=await getC(env),pt=ptfOf(C),on=C.live===true,P=on?await env.KV.get('paper:'+pt,'json'):null;
