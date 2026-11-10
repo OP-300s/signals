@@ -146,10 +146,12 @@ if(M.wk&&closed()&&!force)return{k,tf,skipped:'market closed'};
 M.err='';
 try{
 const C=C0||await getC(env);
-const st=C.st==='ind'?'ind':'candle';
-const x=await candles(k,tf,env),b=(k==='ETH'&&st==='ind')?await candles('BTC',tf,env):null;
-const xs=x.slice(0,-1),r=st==='ind'?analyze(k,xs,b&&b.slice(0,-1)):candle(k,xs,tf),px=x[x.length-1].c,now=Date.now();
-const lk=`last:${st==='ind'?'':'c:'}${k}:${tf}`,old=await env.KV.get(lk,'json');
+const st=C.st==='ind'||C.st==='both'?C.st:'candle';
+const x=await candles(k,tf,env),b=(k==='ETH'&&st!=='candle')?await candles('BTC',tf,env):null;
+const xs=x.slice(0,-1),bs=b&&b.slice(0,-1);let r;
+if(st==='ind')r=analyze(k,xs,bs);else{r=candle(k,xs,tf);if(st==='both'&&r.sig==='WAIT')r=analyze(k,xs,bs)}
+const px=x[x.length-1].c,now=Date.now();
+const lk=`last:${st==='ind'?'':st==='both'?'b:':'c:'}${k}:${tf}`,old=await env.KV.get(lk,'json');
 const fresh=!!old&&old.sig!==r.sig&&now-old.t<WIN[tf]*60000;
 if(!old||old.sig!==r.sig||now-old.t>36e5)await env.KV.put(lk,JSON.stringify({sig:r.sig,t:now}));
 if(env.NTFY_TOPIC&&fresh&&r.sig!=='WAIT'&&wants(C,env,k,tf))await notify(env,k,r,px,tf);
@@ -182,7 +184,7 @@ const C=await getC(env);
 const rest=await Promise.all([...TFS.map(t=>env.KV.get('paper:'+t,'json')),...ORDER.map(k=>env.KV.get('px:'+k,'json')),...ORDER.map(k=>env.KV.get('err:'+k))]);
 const paper={},px={},err={},ct={};TFS.forEach((t,i)=>paper[t]=rest[i]||newPaper(env,C));
 ORDER.forEach((k,i)=>{if(rest[4+i])px[k]=rest[4+i];if(rest[8+i])err[k]=rest[8+i];ct[k]=ctOf(k,env,C)});
-return J({v:5,now:Date.now(),ptf:ptfOf(C),live:C.live===true,st:C.st==='ind'?'ind':'candle',paper,px,err,ct})}
+return J({v:5,now:Date.now(),ptf:ptfOf(C),live:C.live===true,st:C.st==='ind'||C.st==='both'?C.st:'candle',paper,px,err,ct})}
 if(u.pathname==='/config'){if(!ok)return J({error:'wrong password'},403);
 if(req.method!=='POST')return J({error:'use POST'},405);
 let d;try{d=JSON.parse(await req.text())}catch(e){return J({error:'bad data'},400)}
@@ -193,7 +195,7 @@ if(+d.bal>0)o.bal=+d.bal;if(+d.risk>0&&+d.risk<=100)o.risk=+d.risk;
 if(d.ct&&typeof d.ct==='object'){o.ct={};for(const k of ORDER)if(+d.ct[k]>0)o.ct[k]=+d.ct[k]}
 if(TFS.includes(d.ptf))o.ptf=d.ptf;
 if(typeof d.live==='boolean')o.live=d.live;
-if(d.st==='ind'||d.st==='candle')o.st=d.st;
+if(d.st==='ind'||d.st==='candle'||d.st==='both')o.st=d.st;
 await env.KV.put('cfg',JSON.stringify({...(await getC(env)),...o}));return J({saved:true})}
 if(u.pathname==='/orders'){if(!ok)return new Response('wrong password',{status:403,headers:{'Content-Type':'text/plain'}});
 const C=await getC(env),pt=ptfOf(C),on=C.live===true,P=on?await env.KV.get('paper:'+pt,'json'):null;

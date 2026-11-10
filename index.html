@@ -46,6 +46,10 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 .pt{display:flex;gap:6px;align-items:center;margin-top:8px}.pt button{padding:5px 14px;font-size:13px}.pt .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ctr{text-align:center}
 .cks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.cks label{display:flex;flex-direction:column;align-items:center;gap:4px;margin:0;font-size:13px;color:var(--tx);text-align:center}.cks input{width:22px;height:22px}
+.q{width:24px;height:24px;padding:0;border-radius:50%;font-size:14px;line-height:1;color:var(--mu);display:inline-grid;place-items:center;flex:none}
+.hq,.qr{display:flex;align-items:center;justify-content:space-between;gap:10px}.hq.ctr{justify-content:center}.hq.sub{margin:12px 0 6px;font-size:14px;color:var(--mu)}
+.seg{display:flex;gap:8px}.seg button{flex:1;padding:10px 6px;font-size:14px}.seg .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+[hidden]{display:none!important}
 .fc{display:inline-block;vertical-align:middle;margin-inline-start:8px}#pgv{height:220px}
 </style></head><body>
 <h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
@@ -53,44 +57,45 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <div class="tabs" id="mk"></div><div class="tabs sm" id="tfs"></div>
 <div id="out"></div>
 <p id="st" class="mu small"></p>
-<dialog id="dl"><h3 class="ctr">Custom setup</h3>
+<dialog id="dl"><h3 class="ctr hq">Custom setup<button type="button" class="q" data-q="h_cs1,h_cs2" aria-label="Help">?</button></h3>
 <div class="g2"><label>Account balance (USD)<input id="bal" type="number" inputmode="decimal"></label>
 <label>Risk per trade (%)<input id="risk" type="number" inputmode="decimal"></label></div>
 <div id="cts" class="g2"></div>
 <label>Gold Twelve Data key<input id="k_XAU" type="text"></label>
-<p class="mu small">Gold uses your Twelve Data key. Silver, Bitcoin and Ethereum use Binance and need no key.</p>
+<p class="mu small" id="h_cs1" hidden>Gold uses your Twelve Data key. Silver, Bitcoin and Ethereum use Binance and need no key.</p>
 <details><summary>Backup API (optional)</summary>
 <p class="mu small">Used when Twelve Data fails or hits its limit, before Binance. Paste an API address that returns candles, with your key inside the address. Use a different service, not another Twelve Data account. You can use {tf} for 15m, 30m, 1h or 4h, {tfd} for 15min, 30min, 1h or 4h, {min} for 15, 30, 60 or 240, {limit} for the number of candles, and {from} and {to} for start and end time in seconds.</p>
 <label>Gold backup API address<input id="b_XAU" type="text"></label></details>
 <div class="g2"><label>API calls per minute<input id="lm" type="number" inputmode="numeric"></label>
 <label>API calls per day<input id="ld" type="number" inputmode="numeric"></label></div>
-<p class="mu small">Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
-<h3>Market slots</h3>
+<p class="mu small" id="h_cs2" hidden>Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
+<h3 class="hq">Market slots<button type="button" class="q" data-q="h_ms" aria-label="Help">?</button></h3>
 <div id="sls" class="g2"></div>
-<p class="mu small">Each slot shows one market. Choose a different market for a slot to change it.</p>
-<h3>Notifications</h3>
+<p class="mu small" id="h_ms" hidden>Each slot shows one market. Choose a different market for a slot to change it.</p>
+<h3 class="hq">Notifications<button type="button" class="q" data-q="h_nt" aria-label="Help">?</button></h3>
 <div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
 <div class="mu small">Only for these markets:</div><div id="nms" class="cks"></div>
 <div class="mu small">Only for these timeframes:</div><div id="ntfs" class="cks"></div>
-<p class="mu small">With a server address saved, these choices are sent to your server when you tap Save.</p>
-<h3>Paper market</h3>
+<p class="mu small" id="h_nt" hidden>With a server address saved, these choices are sent to your server when you tap Save.</p>
+<h3 class="hq">Paper market<button type="button" class="q" data-q="h_pm" aria-label="Help">?</button></h3>
 <div class="g2"><label>Paper starting balance (USD)<input id="pbal" type="number" inputmode="decimal"></label>
 <label>Paper risk per trade (%)<input id="prisk" type="number" inputmode="decimal"></label></div>
-<label>Paper bot strategy<select id="st"><option value="candle">Candlestick patterns</option><option value="ind">Indicators</option></select></label>
-<p class="mu small">The paper bot, your alerts and the past results use this strategy. The Buy, Sell or Wait at the top and "Why the bot says this" always show the indicators. Candlestick calls are rare, because a pattern needs a key level and a confirmation candle.</p>
+<div class="hq sub"><span>Paper bot strategy</span><button type="button" class="q" data-q="h_st" aria-label="Help">?</button></div>
+<div class="seg" id="stseg" data-v="candle"><button type="button" data-st="ind">Indicators</button><button type="button" data-st="candle">Candlestick</button><button type="button" data-st="both">Both</button></div>
+<p class="mu small" id="h_st" hidden>Indicators: the old score from the trend, momentum and other indicators. Candlestick: only confirmed candlestick patterns. Both: the bot follows a confirmed candlestick pattern, and the indicators when there is none. The paper bot, your alerts and the past results use this strategy. The Buy, Sell or Wait at the top and "Why the bot says this" always show the indicators. Candlestick calls are rare, because a pattern needs a key level and a confirmation candle.</p>
 <div class="ck"><input type="checkbox" id="pg"><span>Show the paper market graph</span></div>
-<p class="mu small">Risk applies to new paper trades. A new balance starts when you reset the paper account. Paper trades use the unit sizes above. With a server, fill in your server password and tap Save to send these to your server.</p>
-<h3>Server (optional)</h3>
+<p class="mu small" id="h_pm" hidden>Risk applies to new paper trades. A new balance starts when you reset the paper account. Paper trades use the unit sizes above. With a server, fill in your server password and tap Save to send these to your server.</p>
+<h3 class="hq">Server (optional)<button type="button" class="q" data-q="h_sv1,h_sv2" aria-label="Help">?</button></h3>
 <label>Server address<input id="su" type="text" placeholder="https://my-bot-server.yourname.workers.dev"></label>
 <label>Server password<input id="sk" type="text" autocomplete="off"></label>
 <div class="ck"><input type="checkbox" id="live"><span>Let my laptop bot copy the paper trades</span></div>
-<p class="mu small">Off by default. When on, the server shares the open paper trades with the bot program on your laptop. Turn it off and tap Save to stop any new real trades.</p>
-<p class="mu small">With a server address, paper trading and notifications run on your Cloudflare server and the Paper market card shows its results. The password is your ntfy topic. It is used to send your settings to the server and to reset the paper account. Leave both empty to keep everything on this phone.</p>
+<p class="mu small" id="h_sv1" hidden>Off by default. When on, the server shares the open paper trades with the bot program on your laptop. Turn it off and tap Save to stop any new real trades.</p>
+<p class="mu small" id="h_sv2" hidden>With a server address, paper trading and notifications run on your Cloudflare server and the Paper market card shows its results. The password is your ntfy topic. It is used to send your settings to the server and to reset the paper account. Leave both empty to keep everything on this phone.</p>
 <h3>Appearance</h3>
 <label>Theme<select id="thm"><option value="auto">Auto (follow my phone)</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
-<h3>Language</h3>
+<h3 class="hq">Language<button type="button" class="q" data-q="h_lg" aria-label="Help">?</button></h3>
 <label>Choose language<select id="lg"><option value="en">English</option><option value="ar">العربية (السعودية)</option></select></label>
-<p class="mu small">Changing the language reloads the app.</p>
+<p class="mu small" id="h_lg" hidden>Changing the language reloads the app.</p>
 <button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></dialog>
 <p class="mu small">Not financial advice. The bot follows fixed rules and can be wrong. Never risk money you cannot afford to lose.</p>
 <script>
@@ -186,7 +191,8 @@ const AD={
 'The 50 average is above the 200: the main trend is up, so selling rallies is riskier.':'المتوسط 50 فوق المتوسط 200: الاتجاه الرئيسي صاعد، لذا البيع عند الصعود أكثر خطورة.',
 'This call does not fight the main trend.':'هذه التوصية لا تعاكس الاتجاه الرئيسي.',
 'Gold uses PAXG, a gold token, as a stand-in.':'الذهب يستخدم PAXG وهو رمز ذهب كبديل.','A Twelve Data key in Settings gives true spot prices.':'مفتاح Twelve Data في الإعدادات يعطي أسعارًا فورية حقيقية.',
-'Candlestick patterns':'أنماط الشموع اليابانية','Indicators':'المؤشرات','Pattern':'النمط','Market direction':'اتجاه السوق','Key level':'المستوى الرئيسي','Confirmation':'التأكيد','Timeframe':'الإطار الزمني',
+'Candlestick patterns':'أنماط الشموع اليابانية','Candlestick':'الشموع','Both':'الاثنان معًا','Indicators':'المؤشرات',
+'Indicators: the old score from the trend, momentum and other indicators.':'المؤشرات: النتيجة القديمة من الاتجاه والزخم ومؤشرات أخرى.','Candlestick: only confirmed candlestick patterns.':'الشموع: أنماط الشموع المؤكدة فقط.','Both: the bot follows a confirmed candlestick pattern, and the indicators when there is none.':'الاثنان معًا: يتبع الروبوت نمط الشموع المؤكد، ويتبع المؤشرات عندما لا يوجد نمط.','Pattern':'النمط','Market direction':'اتجاه السوق','Key level':'المستوى الرئيسي','Confirmation':'التأكيد','Timeframe':'الإطار الزمني',
 'Long wick candle':'شمعة ذات ظل طويل','Inverted long wick candle':'شمعة ذات ظل طويل مقلوبة','Multiple long wick candles':'عدة شموع ذات ظل طويل','Multiple inverted long wick candles':'عدة شموع ذات ظل طويل مقلوبة',
 'No long wick candle in the latest candles.':'لا توجد شمعة ذات ظل طويل في آخر الشموع.','No pattern found, so the bot waits.':'لم يُعثر على نمط، لذا ينتظر الروبوت.',
 'The market was rising before the pattern.':'كان السوق صاعدًا قبل النمط.','The market was not rising before the pattern, so it does not count.':'لم يكن السوق صاعدًا قبل النمط، لذا لا يُحتسب.',
@@ -303,10 +309,10 @@ g.setLineDash([10,8]);g.lineWidth=3;g.strokeStyle=R;ln(x1,Y(z.s),x2,Y(z.s));g.st
 g.textAlign='right';g.fillStyle=R;g.fillText('SL',Math.max(40,x2-4),Y(z.s)+(z.d>0?24:-8));g.fillStyle=G;g.fillText('TP',Math.max(40,x2-4),Y(z.g)+(z.d>0?-8:24));
 const ey=Y(z.e),sz=13,up=z.d>0;g.fillStyle=up?G:R;g.beginPath();if(up){g.moveTo(x1,ey-sz);g.lineTo(x1-sz,ey+sz*.7);g.lineTo(x1+sz,ey+sz*.7)}else{g.moveTo(x1,ey+sz);g.lineTo(x1-sz,ey-sz*.7);g.lineTo(x1+sz,ey-sz*.7)}g.closePath();g.fill();
 if(!z.o){g.fillStyle=z.pnl>0?G:R;g.strokeStyle=Tx;g.lineWidth=2;g.beginPath();g.arc(x2,Y(z.xp),9,0,6.2832);g.fill();g.stroke()}});
-cap.textContent=tf!==pp?T(`The paper bot trades the ${pp} chart. Switch the chart to ${pp} to see its trades.`):!P?T('Loading the server results...'):!tr.length?T('No paper trades for this market on this chart yet.'):T(`Paper trades shown: ${tr.length}. Red dashed line is the stop-loss, green dashed line is the target. An up triangle is a Buy, a down triangle is a Sell, and a dot is where the trade closed.`)}
+cap.textContent=tf!==pp?T(`The paper bot trades the ${pp} chart. Switch the chart to ${pp} to see its trades.`):!P?T('Loading the server results...'):!tr.length?T('No paper trades for this market on this chart yet.'):T(`Paper trades shown: ${tr.length}.`)}
 async function pushSrv(){const C=cfg();if(!C.su)return;
 if(!C.sk){$('#bn').textContent=T('Add your server password in Settings so your notification and paper settings reach the server.');$('#bn').hidden=false;return}
-try{const r=await fetch(C.su+'/config?k='+encodeURIComponent(C.sk),{method:'POST',body:JSON.stringify({nt:!!C.nt,nm:C.nm,ntf:C.ntf,bal:C.pbal,risk:C.prisk,ct:C.ct,ptf:ptf(),live:!!C.live,st:C.st==='ind'?'ind':'candle'})});if(!r.ok)throw Error(r.status===403?'wrong server password':'HTTP '+r.status)}
+try{const r=await fetch(C.su+'/config?k='+encodeURIComponent(C.sk),{method:'POST',body:JSON.stringify({nt:!!C.nt,nm:C.nm,ntf:C.ntf,bal:C.pbal,risk:C.prisk,ct:C.ct,ptf:ptf(),live:!!C.live,st:C.st==='ind'||C.st==='both'?C.st:'candle'})});if(!r.ok)throw Error(r.status===403?'wrong server password':'HTTP '+r.status)}
 catch(e){$('#bn').textContent=T('Saved here, but could not send your settings to the server: '+e.message);$('#bn').hidden=false}}
 
 function analyze(k,x,bx){
@@ -371,9 +377,14 @@ else note=cx.trend&&cx.near?'The pattern was not confirmed, so the bot waits.':'
 F.push({n:'Timeframe',s:1,t:`${tf} chart: strength ${str} out of 5. Bigger timeframes are more reliable.`});
 return{sig,sc:sig==='BUY'?str:sig==='SELL'?-str:0,note,F,A,conf:Math.round(str/5*100),max:5,pat:name}}
 
+const qOpen=new Set(),qh=id=>qOpen.has(id)?'':' hidden';
+document.addEventListener('click',e=>{const b=e.target.closest('button.q');if(!b)return;const L=b.dataset.q.split(',').map(i=>[i,document.getElementById(i)]).filter(z=>z[1]);if(!L.length)return;const open=L[0][1].hidden;L.forEach(([i,el])=>{el.hidden=!open;if(open)qOpen.add(i);else qOpen.delete(i)})});
+const setSeg=v=>{$('#stseg').dataset.v=v;document.querySelectorAll('#stseg button').forEach(z=>z.classList.toggle('on',z.dataset.st===v))};
+document.addEventListener('click',e=>{const b=e.target.closest('#stseg button');if(b)setSeg(b.dataset.st)});
 const px0={};
-const decide=(k,x,bx,t)=>cfg().st==='ind'?analyze(k,x,bx):candle(k,x,t);
-const stOf=()=>((srvOn()&&srv&&srv.st)?srv.st:cfg().st)==='ind'?'Indicators':'Candlestick patterns';
+const stv=()=>{const v=cfg().st;return v==='ind'||v==='both'?v:'candle'};
+const decide=(k,x,bx,t)=>{const v=stv();if(v==='ind')return analyze(k,x,bx);const c=candle(k,x,t);return v==='both'&&c.sig==='WAIT'?analyze(k,x,bx):c};
+const stOf=()=>{const v=srvOn()&&srv&&srv.st?srv.st:stv();return v==='ind'?'Indicators':v==='both'?'Both':'Candlestick patterns'};
 let srv=null,srvErr='';const srvOn=()=>!!cfg().su;
 async function loadSrv(){try{srv=await jget(cfg().su+'/status');srvErr=''}catch(e){srvErr=e.message}}
 const srvInfo=()=>{const t=Math.max(0,...Object.values(srv.px||{}).map(z=>z.t||0)),er=Object.entries(srv.err||{});return `<div class="mu small" style="margin-top:8px">Server prices saved at ${t?new Date(t).toLocaleTimeString():'never'}.${srv.live?' <span class=\"y\">Laptop bot feed is ON.</span>':''}${srvErr?' <span class=\"r\">Could not reach the server just now.</span>':''}${er.length?' <span class="r">Problem: '+er.map(([k,m])=>MK[k].n+': '+m).join('; ')+'</span>':''}</div>`};
@@ -394,11 +405,11 @@ if(!pos&&fresh&&r.sig!=='WAIT'){const d=r.sig==='BUY'?1:-1,sd=1.5*r.A,l=Math.flo
 if(l>=0.01)P.open[k]={d,e:px,s:px-d*sd,g:px+d*2*sd,l,t:Date.now()}}
 P.hist=P.hist.slice(-100);ls('paper',JSON.stringify(P))}
 function showPaper(){const e=$('#pp');if(!e)return;const SV=srvOn(),P=SV?(srv&&srv.paper?srv.paper[pt()]:null):paper();
-const hd=f=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>Paper market</b>${f||''}</div><button id="pf" class="small">Refresh paper</button></div>`;
+const hd=f=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>Paper market</b>${f||''}<button type="button" class="q" data-q="p_d" aria-label="Help" style="margin-inline-start:8px">?</button></div><button id="pf" class="small">Refresh paper</button></div>`;
 if(!P){e.innerHTML=hd()+`<div class="mu small">${srvErr?'Could not reach the server: '+srvErr+'. Check the address in Settings, then tap Refresh paper.':'Loading the server results...'}</div>`;trDom(e);drawTr();return}
 const H=P.hist,n=H.length,w=H.filter(z=>z.pnl>0).length,ops=Object.keys(P.open),sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
 const fl=ops.reduce((q,k)=>{const o=P.open[k],ct=+(((SV?srv.ct:cfg().ct)||{})[k])||MK[k].ct;return q+o.d*(((SV?((srv.px||{})[k]||{}).p:px0[k])||o.e)-o.e)*o.l*ct},0),eq=P.b+fl;
-e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small">A practice account with pretend money on live prices. ${SV?'Your server trades by itself on the '+pt()+' chart, even when the app is closed, and you can only watch.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="mu small">Paper bot strategy: ${stOf()}</div><div class="pt"><span class="mu small">Trades on</span>${TFS.map(t=>`<button data-pt="${t}" class="${pt()===t?'on':''}">${t}</button>`).join('')}</div>${SV?srvInfo():''}
+e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small" id="p_d"${qh('p_d')}>A practice account with pretend money on live prices. ${SV?'Your server trades by itself on the '+pt()+' chart, even when the app is closed, and you can only watch.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="mu small">Paper bot strategy: ${stOf()}</div><div class="pt"><span class="mu small">Trades on</span>${TFS.map(t=>`<button data-pt="${t}" class="${pt()===t?'on':''}">${t}</button>`).join('')}</div>${SV?srvInfo():''}
 <div class="lv"><div><span>Balance</span>$${P.b.toFixed(2)}</div><div><span>Profit or loss</span><b class="${eq>=P.b0?'g':'r'}">${sg(eq-P.b0)}</b></div><div><span>Win rate</span>${n?Math.round(w/n*100):0}%</div><div><span>Loss rate</span>${n?Math.round((n-w)/n*100):0}%</div></div>
 <div class="mu small" style="margin-top:8px">${n} closed trades</div>
 ${ops.length?'<div class="mu small" style="margin-top:8px">Open now</div>'+ops.map(k=>{const o=P.open[k];return `<div class="small">${MK[k].n} ${o.d>0?'Buy':'Sell'} ${o.l.toFixed(2)} lot at ${p(o.e)}</div>`}).join(''):''}
@@ -460,7 +471,7 @@ $('#bn').textContent=t+': '+b;$('#bn').hidden=false;if(navigator.vibrate)navigat
 if(!cfg().nt||!window.Notification||Notification.permission!=='granted')return;
 try{const g=await navigator.serviceWorker.getRegistration();if(g)await g.showNotification(t,{body:b,tag:k+tt,vibrate:[200,100,200]});else new Notification(t,{body:b})}catch(e){}}
 async function check(k,t,n){
-const x=await candles(k,t,n),b=k==='ETH'?await candles('BTC',t,n):null,r=decide(k,x.slice(0,-1),b&&b.slice(0,-1),t),key='n_'+(cfg().st==='ind'?'i':'c')+k+t,old=(ls(key)||'').split('|');
+const x=await candles(k,t,n),b=k==='ETH'?await candles('BTC',t,n):null,r=decide(k,x.slice(0,-1),b&&b.slice(0,-1),t),key='n_'+({ind:'i',both:'b'}[stv()]||'c')+k+t,old=(ls(key)||'').split('|');
 ls(key,r.sig+'|'+Date.now());
 const fresh=!!old[0]&&old[0]!==r.sig&&Date.now()-old[1]<TFM[t]*2*60000;
 if(!srvOn()&&cfg().nt&&nOn(k)&&nTf(t)&&fresh&&r.sig!=='WAIT')notify(k,r,x[x.length-1].c,t);
@@ -477,7 +488,7 @@ const M=MK[k],live=x[x.length-1].c,sr=x.src||'',r=analyze(k,x.slice(0,-1),bx&&bx
 const base=+xp[k]||live,C=cfg(),ct=+(C.ct&&C.ct[k])||M.ct,sdist=1.5*r.A,rk=(+C.bal||0)*(+C.risk||0)/100,lots=rk?Math.floor(rk/(sdist*ct)*100)/100:0;
 const lotb=!rk?`<div class="lot"><span>Lot size</span><b>-</b><p class="mu small">Add your balance and risk in Settings.</p></div>`:lots<0.01?`<div class="lot"><span>Lot size</span><b>0.01</b><p class="mu small">Even the smallest lot risks more than your ${C.risk}% limit.</p></div>`:`<div class="lot"><span>Lot size</span><b>${lots.toFixed(2)}</b></div>`;
 const lv1=r.sig==='WAIT'?'':`<div class="lv"><div><span>${xp[k]?'Entry (your Exness price)':'Entry (feed price)'}</span>${p(base)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(base-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(base+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(base+dir*2*sdist)}</div></div>${lotb}`;
-const lv2=r.sig==='WAIT'?'':`<p class="mu small">In MT5 this is the ${M.ex} symbol. Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.</p><label class="mu small">Type your Exness price from MT5 to get exact levels<input id="xp" type="number" inputmode="decimal" value="${xp[k]||''}"></label>`;
+const lv2=r.sig==='WAIT'?'':`<div class="qr" style="margin-top:12px"><span class="mu small">Type your Exness price from MT5 to get exact levels</span><button type="button" class="q" data-q="x_h" aria-label="Help">?</button></div><p class="mu small" id="x_h"${qh('x_h')}>In MT5 this is the ${M.ex} symbol. Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.</p><input id="xp" type="number" inputmode="decimal" value="${xp[k]||''}">`;
 const cmb=`<div class="cm"><span>Bot comment</span><p>${comment(r,dir)}</p></div>`;
 const cr=candle(k,x.slice(0,-1),tf),cc={BUY:'g',SELL:'r',WAIT:'y'}[cr.sig],cd=`<div class="card"><b>Candlestick patterns</b><div class="mu small">Paper bot strategy: ${stOf()}</div><div style="font-size:30px;font-weight:800;margin:6px 0" class="${cc}">${cr.sig==='WAIT'?'Wait':cr.sig==='BUY'?'Buy':'Sell'}</div><p>${cr.note}</p>${cr.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'\u2713':z.s<0?'\u2717':'\u2026'}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>`;
 $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b> <span class="mu small">from ${sr}</span></div>
@@ -486,7 +497,7 @@ $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart
 <div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv1}${cmb}${lv2}</div>
 ${cd}
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
-${C.pg===false?'':'<div class="card" id="pgc"><b>Paper market graph</b><canvas id="pgv"></canvas><div class="mu small" id="pgn"></div></div>'}
+${C.pg===false?'':'<div class="card" id="pgc"><div class="qr"><b>Paper market graph</b><button type="button" class="q" data-q="g_l" aria-label="Help">?</button></div><canvas id="pgv"></canvas><div class="mu small" id="pgn"></div><p class="mu small" id="g_l"'+qh('g_l')+'>Red dashed line is the stop-loss, green dashed line is the target. An up triangle is a Buy, a down triangle is a Sell, and a dot is where the trade closed.</p></div>'}
 <div class="card" id="pp"></div>
 <div class="card"><b>Past results of the bot</b><div class="mu small">Strategy: ${stOf()}</div><p id="btx" class="small"></p></div>
 <div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>
@@ -517,9 +528,9 @@ document.addEventListener('click',async e=>{if(e.target.id!=='pr'||!confirm(T('R
 if(srvOn()){const C=cfg();if(!C.sk){alert(T('Add your server password in Settings first.'));return}
 try{await jget(C.su+'/reset?tf='+pt()+'&k='+encodeURIComponent(C.sk));await loadSrv()}catch(x){alert('Could not reset: '+x.message+(x.message==='HTTP 403'?' (wrong server password)':''))}}
 else ls('paper','');showPaper()});
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};buildSel();$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#k_XAU').value=tdKey('XAU');$('#su').value=C.su||'';$('#sk').value=C.sk||'';$('#live').checked=!!C.live;$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#pbal').value=C.pbal||10000;$('#prisk').value=C.prisk||1;$('#pg').checked=C.pg!==false;$('#st').value=C.st==='ind'?'ind':'candle';$('#nt').checked=!!C.nt;slots().forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'dark';$('#lg').value=C.lg||'en';TFS.forEach(t=>$('#t_'+t).checked=nTf(t));trDom($('#dl'));$('#dl').showModal()};
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};buildSel();$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#k_XAU').value=tdKey('XAU');$('#su').value=C.su||'';$('#sk').value=C.sk||'';$('#live').checked=!!C.live;$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#pbal').value=C.pbal||10000;$('#prisk').value=C.prisk||1;$('#pg').checked=C.pg!==false;setSeg(C.st==='ind'||C.st==='both'?C.st:'candle');$('#nt').checked=!!C.nt;slots().forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'dark';$('#lg').value=C.lg||'en';TFS.forEach(t=>$('#t_'+t).checked=nTf(t));trDom($('#dl'));$('#dl').showModal()};
 $('#sv').onclick=async()=>{const lg=$('#lg').value,oldLg=cfg().lg||'en';
-ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,su:(u=>u&&!/^https?:\/\//.test(u)?'https://'+u:u)($('#su').value.trim().replace(/\/+$/,'')),sk:$('#sk').value.trim(),live:$('#live').checked,bk:{XAU:$('#b_XAU').value.trim()},th:$('#thm').value,lg,pbal:+$('#pbal').value||10000,prisk:+$('#prisk').value||1,pg:$('#pg').checked,st:$('#st').value,sl:[...document.querySelectorAll('[data-sl]')].map(z=>z.value),ntf:TFS.filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k)?$('#m_'+k).checked:nOn(k)])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim()}));
+ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,su:(u=>u&&!/^https?:\/\//.test(u)?'https://'+u:u)($('#su').value.trim().replace(/\/+$/,'')),sk:$('#sk').value.trim(),live:$('#live').checked,bk:{XAU:$('#b_XAU').value.trim()},th:$('#thm').value,lg,pbal:+$('#pbal').value||10000,prisk:+$('#prisk').value||1,pg:$('#pg').checked,st:$('#stseg').dataset.v,sl:[...document.querySelectorAll('[data-sl]')].map(z=>z.value),ntf:TFS.filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k)?$('#m_'+k).checked:nOn(k)])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim()}));
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
 if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent=T('Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.');$('#bn').hidden=false}
 await pushSrv();
