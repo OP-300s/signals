@@ -205,6 +205,16 @@ const AD={
 'The next candle closed above the pattern, so it is confirmed.':'أغلقت الشمعة التالية فوق النمط، لذا تم التأكيد.','The next candle did not close above the pattern, so it is not confirmed.':'لم تُغلق الشمعة التالية فوق النمط، لذا لم يتم التأكيد.',
 'The pattern, the key level and the confirmation all agree.':'النمط والمستوى الرئيسي والتأكيد كلها متوافقة.','The pattern was not confirmed, so the bot waits.':'لم يتم تأكيد النمط، لذا ينتظر الروبوت.',
 'Bigger timeframes are more reliable.':'الأطر الزمنية الأكبر أكثر موثوقية.',
+'Shrinking red candles':'شموع حمراء متناقصة','Shrinking green candles':'شموع خضراء متناقصة','Bearish engulfing candle':'شمعة ابتلاعية هابطة','Bullish engulfing candle':'شمعة ابتلاعية صاعدة',
+'No candlestick pattern in the latest candles.':'لا يوجد نمط شموع في آخر الشموع.',
+'A pattern was found, but the conditions are not met, so the bot waits.':'تم العثور على نمط لكن الشروط غير مكتملة، لذا ينتظر الروبوت.',
+'The market was falling before the big candle.':'كان السوق هابطًا قبل الشمعة الكبيرة.','The market was not falling before the big candle, so it does not count.':'لم يكن السوق هابطًا قبل الشمعة الكبيرة، لذا لا يُحتسب.',
+'The market was rising before the big candle.':'كان السوق صاعدًا قبل الشمعة الكبيرة.','The market was not rising before the big candle, so it does not count.':'لم يكن السوق صاعدًا قبل الشمعة الكبيرة، لذا لا يُحتسب.',
+'Waiting for a big green candle to close.':'بانتظار إغلاق شمعة خضراء كبيرة.','Waiting for a big red candle to close.':'بانتظار إغلاق شمعة حمراء كبيرة.',
+'A big green candle closed after the red candles, so it is confirmed.':'أغلقت شمعة خضراء كبيرة بعد الشموع الحمراء، لذا تم التأكيد.','A big red candle closed after the green candles, so it is confirmed.':'أغلقت شمعة حمراء كبيرة بعد الشموع الخضراء، لذا تم التأكيد.',
+'The green candle after the red candles is not big enough, so it is not confirmed.':'الشمعة الخضراء بعد الشموع الحمراء ليست كبيرة بما يكفي، لذا لم يتم التأكيد.','The red candle after the green candles is not big enough, so it is not confirmed.':'الشمعة الحمراء بعد الشموع الخضراء ليست كبيرة بما يكفي، لذا لم يتم التأكيد.',
+'The red candle body covers the whole body of the green candle before it.':'جسم الشمعة الحمراء يغطي كامل جسم الشمعة الخضراء التي قبلها.','The green candle body covers the whole body of the red candle before it.':'جسم الشمعة الخضراء يغطي كامل جسم الشمعة الحمراء التي قبلها.',
+'This pattern is trusted a little less than the others, so its strength is lower.':'هذا النمط أقل موثوقية قليلًا من غيره، لذا قوته أقل.',
 'Paper bot strategy':'استراتيجية الروبوت التجريبي','The paper bot, your alerts and the past results use this strategy.':'يستخدم الروبوت التجريبي والتنبيهات والنتائج السابقة هذه الاستراتيجية.',
 'The Buy, Sell or Wait at the top and "Why the bot says this" always show the indicators.':'شراء أو بيع أو انتظار في الأعلى و"لماذا يقول الروبوت هذا" تعرض المؤشرات دائمًا.',
 'Candlestick calls are rare, because a pattern needs a key level and a confirmation candle.':'توصيات الشموع نادرة لأن النمط يحتاج إلى مستوى رئيسي وشمعة تأكيد.',
@@ -234,6 +244,7 @@ const AP=[
 [/^Volume is ([\d.]+)x normal: no strong confirmation\.$/,(m,a)=>`حجم التداول ${a} ضعف المعتاد: لا يوجد تأكيد قوي.`],
 [/^ETH gained ([\d.]+)% on BTC over 12 candles: it is leading\.$/,(m,a)=>`ارتفع إيثريوم ${a}% مقابل بيتكوين خلال 12 شمعة: إنه يقود.`],
 [/^ETH lost ([\d.]+)% against BTC over 12 candles: it is lagging\.$/,(m,a)=>`خسر إيثريوم ${a}% مقابل بيتكوين خلال 12 شمعة: إنه متأخر.`],
+[/^There are (\d+) (red|green) candles in a row, each smaller than the one before\.$/,(m,a,b)=>`هناك ${a} شموع ${b==='red'?'حمراء':'خضراء'} متتالية، كل واحدة أصغر من التي قبلها.`],
 [/^(.+) found\.$/,(m,a)=>`تم العثور على ${NM(a)}.`],
 [/^The wick is (\d+)% of the candle\.$/,(m,a)=>`الظل يمثل ${a}% من الشمعة.`],
 [/^It has (\d+) candles in a row\.$/,(m,a)=>`عددها ${a} شموع متتالية.`],
@@ -348,7 +359,7 @@ else if(sig==='WAIT')note=`Score ${sc>0?'+':''}${sc} has not reached ±${M.thr}.
 return{sig,sc,note,F,A,conf:Math.round(Math.min(1,Math.abs(sc)/M.max)*100)}}
 
 // ---- candlestick patterns (long wick family) ----
-function candle(k,x,tf){
+function candleWick(k,x,tf){
 const AT=atr(x),i=x.length-1,A=AT[i],NEAR=.5,S0={'15m':1,'30m':2,'1h':3,'4h':4}[tf]||1,F=[];
 const wk=(a,up)=>{const r=a.h-a.l;return r>0&&(up?a.h-Math.max(a.o,a.c):Math.min(a.o,a.c)-a.l)/r>=.7};
 const grp=p=>{if(p<7)return null;for(const up of[false,true])if(wk(x[p],up)){let s=p;while(s>0&&wk(x[s-1],up))s--;return{up,s,p,len:p-s+1}}return null};
@@ -359,7 +370,7 @@ let lvl=null,dist=Infinity;
 for(let j=Math.max(3,s-150);j<=s-4;j++){const v=up?x[j].h:x[j].l;let ok=true;for(let q=j-3;q<=j+3&&ok;q++)if(q!==j&&(up?x[q].h>=v:x[q].l<=v))ok=false;if(ok&&v>=zl&&v<=zh&&Math.abs(v-ext)<dist){dist=Math.abs(v-ext);lvl=v}}
 return{trend,near:lvl!==null,lvl}};
 let g=grp(i);const pending=!!g;if(!g)g=grp(i-1);
-if(!g)return{sig:'WAIT',sc:0,note:'No pattern found, so the bot waits.',F:[{n:'Pattern',s:0,t:'No long wick candle in the latest candles.'}],A,conf:0,max:5,pat:''};
+if(!g)return{sig:'WAIT',sc:0,note:'No pattern found, so the bot waits.',F:[{n:'Pattern',s:0,t:'No long wick candle in the latest candles.'}],A,conf:0,max:5,pat:'',rk:0};
 const cx=chk(g),up=g.up,a=x[g.p],seg=x.slice(g.s,g.p+1),
 name=up?(g.len>1?'Multiple inverted long wick candles':'Inverted long wick candle'):(g.len>1?'Multiple long wick candles':'Long wick candle'),
 pct=Math.round(100*(up?a.h-Math.max(a.o,a.c):Math.min(a.o,a.c)-a.l)/(a.h-a.l)),
@@ -375,7 +386,64 @@ F.push({n:'Confirmation',s:ok?1:-1,t:up?(ok?'The next candle closed below the pa
 if(cx.trend&&cx.near&&ok){sig=up?'SELL':'BUY';note='The pattern, the key level and the confirmation all agree.'}
 else note=cx.trend&&cx.near?'The pattern was not confirmed, so the bot waits.':'A long wick candle was found, but the conditions are not met, so the bot waits.'}
 F.push({n:'Timeframe',s:1,t:`${tf} chart: strength ${str} out of 5. Bigger timeframes are more reliable.`});
-return{sig,sc:sig==='BUY'?str:sig==='SELL'?-str:0,note,F,A,conf:Math.round(str/5*100),max:5,pat:name}}
+return{sig,sc:sig==='BUY'?str:sig==='SELL'?-str:0,note,F,A,conf:Math.round(str/5*100),max:5,pat:name,rk:sig!=='WAIT'?3:pending&&cx.trend&&cx.near?2:1}}
+
+// ---- candlestick patterns 2 and 3: shrinking candles, engulfing ----
+function candleShrink(k,x,tf){
+const AT=atr(x),i=x.length-1,A=AT[i],NEAR=.5,str={'15m':1,'30m':2,'1h':3,'4h':4}[tf]||1,F=[];
+const bd=a=>Math.abs(a.c-a.o),col=(a,g)=>g?a.c>a.o:a.c<a.o;
+const run=(e,g)=>{if(e<1||!col(x[e],g))return 0;let n=1;while(n<4&&e-n>=0&&col(x[e-n],g)&&bd(x[e-n])>bd(x[e-n+1]))n++;return n};
+let up=null,L=0,pend=false;
+for(const g of[false,true]){const r=run(i-1,g);if(r>=3&&col(x[i],!g)){up=g;L=r;break}}
+if(up===null)for(const g of[false,true]){const r=run(i,g);if(r>=3){up=g;L=r;pend=true;break}}
+if(up===null)return{sig:'WAIT',sc:0,note:'No pattern found, so the bot waits.',F:[{n:'Pattern',s:0,t:'No candlestick pattern in the latest candles.'}],A,conf:0,max:5,pat:'',rk:0};
+const re=pend?i:i-1,s=re-L+1,Ap=AT[i],tol=NEAR*Ap,seg=x.slice(s,i+1),ext=up?Math.max(...seg.map(a=>a.h)):Math.min(...seg.map(a=>a.l)),
+trend=re>=5&&(up?x[re].c-x[re-5].c>=Ap:x[re-5].c-x[re].c>=Ap);
+let lvl=null,dist=Infinity;
+for(let j=Math.max(3,s-150);j<=s-4;j++){const v=up?x[j].h:x[j].l;let ok=true;for(let q=j-3;q<=j+3&&ok;q++)if(q!==j&&(up?x[q].h>=v:x[q].l<=v))ok=false;if(ok&&v>=ext-tol&&v<=ext+tol&&Math.abs(v-ext)<dist){dist=Math.abs(v-ext);lvl=v}}
+const near=lvl!==null,name=up?'Shrinking green candles':'Shrinking red candles';
+F.push({n:'Pattern',s:1,t:`${name} found. There are ${L} ${up?'green':'red'} candles in a row, each smaller than the one before.`});
+F.push({n:'Market direction',s:trend?1:-1,t:up?(trend?'The market was rising before the big candle.':'The market was not rising before the big candle, so it does not count.'):(trend?'The market was falling before the big candle.':'The market was not falling before the big candle, so it does not count.')});
+F.push({n:'Key level',s:near?1:-1,t:up?(near?`The high is near a resistance level at ${p(lvl)}.`:'No resistance level is near the high, so the pattern does not count.'):(near?`The low is near a support level at ${p(lvl)}.`:'No support level is near the low, so the pattern does not count.')});
+let sig='WAIT',note,rk;
+if(pend){F.push({n:'Confirmation',s:0,t:up?'Waiting for a big red candle to close.':'Waiting for a big green candle to close.'});
+note=trend&&near?'A pattern is forming. Waiting for the next candle to close to confirm it.':'A pattern was found, but the conditions are not met, so the bot waits.';rk=trend&&near?2:1}
+else{const ok=bd(x[i])>=Math.max(x.slice(s,re+1).reduce((q,z)=>q+bd(z),0)/L,.5*Ap);
+F.push({n:'Confirmation',s:ok?1:-1,t:up?(ok?'A big red candle closed after the green candles, so it is confirmed.':'The red candle after the green candles is not big enough, so it is not confirmed.'):(ok?'A big green candle closed after the red candles, so it is confirmed.':'The green candle after the red candles is not big enough, so it is not confirmed.')});
+if(trend&&near&&ok){sig=up?'SELL':'BUY';note='The pattern, the key level and the confirmation all agree.'}
+else note=trend&&near?'The pattern was not confirmed, so the bot waits.':'A pattern was found, but the conditions are not met, so the bot waits.';rk=sig!=='WAIT'?3:1}
+F.push({n:'Timeframe',s:1,t:`${tf} chart: strength ${str} out of 5. Bigger timeframes are more reliable.`});
+return{sig,sc:sig==='BUY'?str:sig==='SELL'?-str:0,note,F,A,conf:Math.round(str/5*100),max:5,pat:name,rk}}
+
+function candleEngulf(k,x,tf){
+const AT=atr(x),i=x.length-1,A=AT[i],NEAR=.5,str=Math.max(1,({'15m':1,'30m':2,'1h':3,'4h':4}[tf]||1)-1),F=[];
+const eng=q=>{if(q<7)return 0;const a=x[q-1],b=x[q];return a.c>a.o&&b.c<b.o&&b.o>=a.c&&b.c<=a.o?1:a.c<a.o&&b.c>b.o&&b.o<=a.c&&b.c>=a.o?-1:0};
+let pp=i,d=eng(i);const pend=d!==0;if(!d){pp=i-1;d=eng(i-1)}
+if(!d)return{sig:'WAIT',sc:0,note:'No pattern found, so the bot waits.',F:[{n:'Pattern',s:0,t:'No candlestick pattern in the latest candles.'}],A,conf:0,max:5,pat:'',rk:0};
+const up=d>0,s=pp-1,Ap=AT[pp],tol=NEAR*Ap,seg=x.slice(s,pp+1),ext=up?Math.max(...seg.map(a=>a.h)):Math.min(...seg.map(a=>a.l)),
+trend=s>=6&&(up?x[s-1].c-x[s-6].c>=Ap:x[s-6].c-x[s-1].c>=Ap);
+let lvl=null,dist=Infinity;
+for(let j=Math.max(3,s-150);j<=s-4;j++){const v=up?x[j].h:x[j].l;let ok=true;for(let q=j-3;q<=j+3&&ok;q++)if(q!==j&&(up?x[q].h>=v:x[q].l<=v))ok=false;if(ok&&v>=ext-tol&&v<=ext+tol&&Math.abs(v-ext)<dist){dist=Math.abs(v-ext);lvl=v}}
+const near=lvl!==null,name=up?'Bearish engulfing candle':'Bullish engulfing candle';
+F.push({n:'Pattern',s:1,t:`${name} found. `+(up?'The red candle body covers the whole body of the green candle before it.':'The green candle body covers the whole body of the red candle before it.')});
+F.push({n:'Market direction',s:trend?1:-1,t:up?(trend?'The market was rising before the pattern.':'The market was not rising before the pattern, so it does not count.'):(trend?'The market was falling before the pattern.':'The market was not falling before the pattern, so it does not count.')});
+F.push({n:'Key level',s:near?1:-1,t:up?(near?`The high is near a resistance level at ${p(lvl)}.`:'No resistance level is near the high, so the pattern does not count.'):(near?`The low is near a support level at ${p(lvl)}.`:'No support level is near the low, so the pattern does not count.')});
+let sig='WAIT',note,rk;
+if(pend){F.push({n:'Confirmation',s:0,t:up?'Waiting for the next candle to close below the pattern.':'Waiting for the next candle to close above the pattern.'});
+note=trend&&near?'A pattern is forming. Waiting for the next candle to close to confirm it.':'A pattern was found, but the conditions are not met, so the bot waits.';rk=trend&&near?2:1}
+else{const ok=up?x[i].c<x[pp].l:x[i].c>x[pp].h;
+F.push({n:'Confirmation',s:ok?1:-1,t:up?(ok?'The next candle closed below the pattern, so it is confirmed.':'The next candle did not close below the pattern, so it is not confirmed.'):(ok?'The next candle closed above the pattern, so it is confirmed.':'The next candle did not close above the pattern, so it is not confirmed.')});
+if(trend&&near&&ok){sig=up?'SELL':'BUY';note='The pattern, the key level and the confirmation all agree.'}
+else note=trend&&near?'The pattern was not confirmed, so the bot waits.':'A pattern was found, but the conditions are not met, so the bot waits.';rk=sig!=='WAIT'?3:1}
+F.push({n:'Timeframe',s:1,t:`${tf} chart: strength ${str} out of 5. Bigger timeframes are more reliable. This pattern is trusted a little less than the others, so its strength is lower.`});
+return{sig,sc:sig==='BUY'?str:sig==='SELL'?-str:0,note,F,A,conf:Math.round(str/5*100),max:5,pat:name,rk}}
+
+// all three patterns: a confirmed call wins (stronger first), then a forming pattern, then any pattern found
+function candle(k,x,tf){
+const R=[candleWick(k,x,tf),candleShrink(k,x,tf),candleEngulf(k,x,tf)];let b=R[0];
+for(const r of R.slice(1))if(r.rk>b.rk||(r.rk>=2&&r.rk===b.rk&&r.conf>b.conf))b=r;
+return b.rk===0?{...b,F:[{n:'Pattern',s:0,t:'No candlestick pattern in the latest candles.'}]}:b}
+
 
 const qOpen=new Set(),qh=id=>qOpen.has(id)?'':' hidden';
 document.addEventListener('click',e=>{const b=e.target.closest('button.q');if(!b)return;const L=b.dataset.q.split(',').map(i=>[i,document.getElementById(i)]).filter(z=>z[1]);if(!L.length)return;const open=L[0][1].hidden;L.forEach(([i,el])=>{el.hidden=!open;if(open)qOpen.add(i);else qOpen.delete(i)})});
