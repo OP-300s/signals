@@ -1,40 +1,40 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#14181f">
+<meta name="theme-color" content="#000000">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>My Bot</title>
 <script>try{const c=JSON.parse(localStorage.getItem('cfg')||'{}'),m=c.th||'dark';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m}catch(e){}</script>
 <style>
-:root{--bg:#f4f5f2;--cd:#fff;--tx:#1b2430;--mu:#667180;--bd:#dde1e5;--g:#1f8a5b;--r:#c8433a;--y:#b7791f}
-:root[data-theme=dark]{--bg:#14181f;--cd:#1c222b;--tx:#e9edf2;--mu:#93a0b0;--bd:#2b3340;--g:#3fbf86;--r:#ef6a60;--y:#e0a542}
+:root{--bg:#f2f2f2;--cd:#fff;--tx:#111;--mu:#6b6b6b;--bd:#d9d9d9;--g:#1f8a5b;--r:#c8433a;--y:#b7791f}
+:root[data-theme=dark]{--bg:#000;--cd:#161616;--tx:#f5f5f5;--mu:#9b9b9b;--bd:#2e2e2e;--g:#3fbf86;--r:#ef6a60;--y:#e0a542}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,Roboto,sans-serif;padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom));max-width:560px;margin-inline:auto}
 h1{font-size:20px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center}
-button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);border-radius:10px;padding:8px 14px}
+button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);border-radius:6px;padding:8px 14px}
 .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.tabs button{flex:1 1 28%}
 .tabs .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .sm button{padding:5px 10px;flex:1 1 20%}
-.card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:12px 0}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:16px;margin:12px 0}
 .mu{color:var(--mu)}.small{font-size:13px}
 .sig{font-size:64px;font-weight:800;letter-spacing:-2px;line-height:1.05;margin:6px 0}
 .api{text-align:end;font-size:13px;line-height:1.5;color:var(--mu)}
 .g{color:var(--g)}.r{color:var(--r)}.y{color:var(--y)}
-.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin:8px 0}
+.bar{height:8px;background:var(--bd);border-radius:2px;overflow:hidden;margin:8px 0}
 .bar i{display:block;height:100%}.bar i.g{background:var(--g)}.bar i.r{background:var(--r)}.bar i.y{background:var(--y)}
 .lv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .lv div{border-top:1px solid var(--bd);padding-top:6px;font-weight:600}.lv span{display:block;font-weight:400;color:var(--mu);font-size:13px}
 .rs{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--bd)}.rs:first-of-type{margin-top:8px}
-.ch{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid currentColor;display:grid;place-items:center;font-weight:700;font-size:14px}
+.ch{flex:none;width:34px;height:34px;border-radius:6px;border:2px solid currentColor;display:grid;place-items:center;font-weight:700;font-size:14px}
 canvas{width:100%;height:80px;display:block}
 summary{font-weight:600}
 .hb{display:flex;gap:8px}.hb button{padding:6px 12px;font-size:14px}
-.bn{background:var(--tx);color:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-weight:600}
-dialog{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:14px;width:min(92vw,420px)}
+.bn{background:var(--tx);color:var(--bg);border-radius:6px;padding:12px 14px;margin-bottom:12px;font-weight:600}
+dialog{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:8px;width:min(92vw,420px)}
 dialog label{display:block;margin:10px 0;font-size:14px;color:var(--mu)}
-dialog input:not([type=checkbox]),dialog select,#xp{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}
+dialog input:not([type=checkbox]),dialog select,#xp{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--tx)}
 .ck{display:flex;gap:10px;align-items:center;margin:12px 0}.ck input{width:22px;height:22px}
 dialog{max-height:88vh;overflow:auto}
 dialog h3{font-size:16px;margin:18px 0 4px;padding-top:14px;border-top:1px solid var(--bd)}
@@ -46,11 +46,11 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 .pt{display:flex;gap:6px;align-items:center;margin-top:8px}.pt button{padding:5px 14px;font-size:13px}.pt .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ctr{text-align:center}
 .cks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.cks label{display:flex;flex-direction:column;align-items:center;gap:4px;margin:0;font-size:13px;color:var(--tx);text-align:center}.cks input{width:22px;height:22px}
-.q{width:24px;height:24px;padding:0;border-radius:50%;font-size:14px;line-height:1;color:var(--mu);display:inline-grid;place-items:center;flex:none}
+.q{width:24px;height:24px;padding:0;border-radius:6px;font-size:14px;line-height:1;color:var(--mu);display:inline-grid;place-items:center;flex:none}
 .hq,.qr{display:flex;align-items:center;justify-content:space-between;gap:10px}.hq.ctr{justify-content:center}.hq.sub{margin:12px 0 6px;font-size:14px;color:var(--mu)}
-.seg{display:flex;gap:8px}.seg button{flex:1;padding:10px 6px;font-size:14px}.seg .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.seg{display:flex;gap:8px}.seg button{flex:1;padding:10px 6px;font-size:14px}.seg .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}.seg.s4{margin:8px 0}.seg.s4 button{font-size:13px;padding:10px 2px}
 [hidden]{display:none!important}
-.fc{display:inline-block;vertical-align:middle;margin-inline-start:8px}#pgv{height:220px}
+.fc{display:inline-block;vertical-align:middle;margin-inline-start:8px}#pgv{height:280px}
 </style></head><body>
 <h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="gear">Settings</button></span></h1>
 <div id="bn" class="bn" hidden onclick="this.hidden=true"></div>
@@ -74,8 +74,8 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <p class="mu small" id="h_ms" hidden>Each slot shows one market. Choose a different market for a slot to change it.</p>
 <h3 class="hq">Notifications<button type="button" class="q" data-q="h_nt" aria-label="Help">?</button></h3>
 <div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
-<div class="mu small">Only for these markets:</div><div id="nms" class="cks"></div>
-<div class="mu small">Only for these timeframes:</div><div id="ntfs" class="cks"></div>
+<div class="mu small">Only for these markets:</div><div id="nms" class="seg s4"></div>
+<div class="mu small">Only for these timeframes:</div><div id="ntfs" class="seg s4"></div>
 <p class="mu small" id="h_nt" hidden>With a server address saved, these choices are sent to your server when you tap Save.</p>
 <h3 class="hq">Paper market<button type="button" class="q" data-q="h_pm" aria-label="Help">?</button></h3>
 <div class="g2"><label>Paper starting balance (USD)<input id="pbal" type="number" inputmode="decimal"></label>
@@ -83,7 +83,7 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <div class="hq sub"><span>Paper bot strategy</span><button type="button" class="q" data-q="h_st" aria-label="Help">?</button></div>
 <div class="seg" id="stseg" data-v="candle"><button type="button" data-st="ind">Indicators</button><button type="button" data-st="candle">Candlestick</button><button type="button" data-st="both">Both</button></div>
 <p class="mu small" id="h_st" hidden>Indicators: the old score from the trend, momentum and other indicators. Candlestick: only confirmed candlestick patterns. Both: the bot follows a confirmed candlestick pattern, and the indicators when there is none. The paper bot, your alerts and the past results use this strategy. The Buy, Sell or Wait at the top and "Why the bot says this" always show the indicators. Candlestick calls are rare, because a pattern needs a key level and a confirmation candle.</p>
-<div class="ck"><input type="checkbox" id="pg"><span>Show the paper market graph</span></div>
+<div class="ck"><input type="checkbox" id="pg"><span>Show the candle chart</span></div>
 <p class="mu small" id="h_pm" hidden>Risk applies to new paper trades. A new balance starts when you reset the paper account. Paper trades use the unit sizes above. With a server, fill in your server password and tap Save to send these to your server.</p>
 <h3 class="hq">Server (optional)<button type="button" class="q" data-q="h_sv1,h_sv2" aria-label="Help">?</button></h3>
 <label>Server address<input id="su" type="text" placeholder="https://my-bot-server.yourname.workers.dev"></label>
@@ -146,7 +146,7 @@ const AD={
 'Market slots':'خانات الأسواق','Each slot shows one market.':'كل خانة تعرض سوقًا واحدًا.','Choose a different market for a slot to change it.':'اختر سوقًا مختلفًا للخانة لتغييره.',
 'Notifications':'الإشعارات','Notify me when the bot says Buy or Sell':'أبلغني عندما يقول الروبوت شراء أو بيع','Only for these markets:':'فقط لهذه الأسواق:','Only for these timeframes:':'فقط لهذه الأطر الزمنية:',
 'With a server address saved, these choices are sent to your server when you tap Save.':'عند حفظ عنوان الخادم، تُرسل هذه الخيارات إلى خادمك عند الضغط على حفظ.',
-'Paper market':'السوق التجريبي','Paper starting balance (USD)':'الرصيد الابتدائي التجريبي (دولار)','Paper risk per trade (%)':'مخاطرة الصفقة التجريبية (%)','Show the paper market graph':'إظهار رسم السوق التجريبي',
+'Paper market':'السوق التجريبي','Paper starting balance (USD)':'الرصيد الابتدائي التجريبي (دولار)','Paper risk per trade (%)':'مخاطرة الصفقة التجريبية (%)','Show the candle chart':'إظهار رسم الشموع',
 'Risk applies to new paper trades.':'تُطبَّق المخاطرة على الصفقات التجريبية الجديدة.','A new balance starts when you reset the paper account.':'يبدأ الرصيد الجديد عند إعادة ضبط الحساب التجريبي.','Paper trades use the unit sizes above.':'الصفقات التجريبية تستخدم أحجام الوحدات أعلاه.','With a server, fill in your server password and tap Save to send these to your server.':'مع وجود خادم، أدخل كلمة مرور الخادم واضغط حفظ لإرسالها إلى خادمك.',
 'Server (optional)':'الخادم (اختياري)','Server address':'عنوان الخادم','Server password':'كلمة مرور الخادم',
 'With a server address, paper trading and notifications run on your Cloudflare server and the Paper market card shows its results.':'مع وجود عنوان خادم، يعمل التداول التجريبي والإشعارات على خادم Cloudflare الخاص بك وتعرض بطاقة السوق التجريبي نتائجه.',
@@ -161,7 +161,7 @@ const AD={
 'Why the bot says this':'لماذا يقول الروبوت هذا','Past results of the bot':'النتائج السابقة للروبوت','Checking past results...':'جارٍ فحص النتائج السابقة...',
 'The bot made no Buy or Sell calls in this period.':'لم يصدر الروبوت أي توصية شراء أو بيع في هذه الفترة.','Buy or Sell calls.':'توصية شراء أو بيع.','If you had closed each one after 8 candles,':'لو أغلقت كل واحدة بعد 8 شموع،',
 'That is too few calls to trust this number.':'عدد التوصيات قليل جدًا للوثوق بهذا الرقم.','Past results are weak here, so treat new calls with extra caution.':'النتائج السابقة ضعيفة هنا، لذا تعامل مع التوصيات الجديدة بحذر إضافي.','Past results are positive here, but the future can differ.':'النتائج السابقة إيجابية هنا، لكن المستقبل قد يختلف.',
-'Last 80 candles':'آخر 80 شمعة',
+'Last 100 candles':'آخر 100 شمعة',
 'Free feed':'مصدر مجاني','no key needed':'لا يحتاج مفتاحًا','No key':'لا يوجد مفتاح','add one in Settings':'أضف مفتاحًا في الإعدادات','Daily API':'API اليومي','Minute API':'API في الدقيقة',
 'The market is too quiet right now: expected moves are too small to cover trading costs.':'السوق هادئ جدًا الآن: الحركات المتوقعة أصغر من أن تغطي تكاليف التداول.',
 'The factors are mixed or weak, so waiting is the better move.':'العوامل متضاربة أو ضعيفة، لذا الانتظار هو الخيار الأفضل.',
@@ -222,7 +222,7 @@ const AD={
 
 'Showing':'عرض','Trades on':'يتداول على','Balance':'الرصيد','Profit or loss':'الربح أو الخسارة','Win rate':'نسبة الربح','Loss rate':'نسبة الخسارة','Open now':'مفتوحة الآن','History':'السجل','Reset paper account':'إعادة ضبط الحساب التجريبي',
 'Loading the server results...':'جارٍ تحميل نتائج الخادم...','Could not reach the server just now.':'تعذر الوصول إلى الخادم الآن.',
-'Paper market graph':'رسم السوق التجريبي','No paper trades for this market on this chart yet.':'لا توجد صفقات تجريبية لهذا السوق على هذا الفريم بعد.','Red dashed line is the stop-loss, green dashed line is the target.':'الخط الأحمر المتقطع هو وقف الخسارة، والخط الأخضر المتقطع هو الهدف.','An up triangle is a Buy, a down triangle is a Sell, and a dot is where the trade closed.':'المثلث الصاعد يعني شراء، والمثلث الهابط يعني بيع، والنقطة هي مكان إغلاق الصفقة.',
+'Candle chart':'رسم الشموع','Shaded bands are candlestick patterns the bot confirmed: green is a Buy pattern, red is a Sell pattern.':'المناطق المظللة هي أنماط شموع أكدها الروبوت: الأخضر نمط شراء والأحمر نمط بيع.','W is a long wick candle, S is shrinking candles and E is an engulfing candle.':'W شمعة ذات ظل طويل، وS شموع متناقصة، وE شمعة ابتلاعية.','No paper trades for this market on this chart yet.':'لا توجد صفقات تجريبية لهذا السوق على هذا الفريم بعد.','Red dashed line is the stop-loss, green dashed line is the target.':'الخط الأحمر المتقطع هو وقف الخسارة، والخط الأخضر المتقطع هو الهدف.','An up triangle is a Buy, a down triangle is a Sell, and a dot is where the trade closed.':'المثلث الصاعد يعني شراء، والمثلث الهابط يعني بيع، والنقطة هي مكان إغلاق الصفقة.',
 'stop-loss hit':'تم ضرب وقف الخسارة','target hit':'تم تحقيق الهدف','call reversed':'انعكست التوصية',
 'Reset the paper account?':'هل تريد إعادة ضبط الحساب التجريبي؟','Add your server password in Settings first.':'أضف كلمة مرور الخادم في الإعدادات أولًا.',
 'Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.':'الإشعارات محظورة. في Chrome افتح إعدادات الموقع لهذه الصفحة واسمح بالإشعارات.',
@@ -264,6 +264,7 @@ const AP=[
 [/^(.+?) (Buy|Sell) ([\d.]+) lot:$/,(m,a,b,c)=>`${NM(a)} ${SGN(b)} ${c} لوت:`],
 [/^\((stop-loss hit|target hit|call reversed)\)$/,(m,a)=>`(${AD[a]})`],
 [/^Paper trades shown: (\d+)\.$/,(m,a)=>`الصفقات التجريبية المعروضة: ${a}.`],
+[/^Patterns marked: (\d+)\.$/,(m,a)=>`الأنماط المعلّمة: ${a}.`],
 [/^The paper bot trades the (\S+) chart\. Switch the chart to (\S+) to see its trades\.$/,(m,a,b)=>`الروبوت التجريبي يتداول على فريم ${a}. غيّر الفريم إلى ${b} لرؤية صفقاته.`],
 [/^Your server trades by itself on the (\S+) chart, even when the app is closed, and you can only watch\.$/,(m,a)=>`خادمك يتداول وحده على فريم ${a} حتى عندما يكون التطبيق مغلقًا، وأنت تشاهد فقط.`],
 [/^On the (\S+) chart over the last (\d+) days, the bot made$/,(m,a,b)=>`على فريم ${a} خلال آخر ${b} يومًا، أصدر الروبوت`],
@@ -301,18 +302,30 @@ const slots=()=>{const a=cfg().sl;return Array.isArray(a)&&a.length===4&&a.every
 function buildMk(){$('#mk').innerHTML=slots().map(k=>`<button data-k="${k}">${IC[k]||''}<span>${MK[k].n}</span></button>`).join('');trDom($('#mk'));sel()}
 const FACE={w:['00111100','01111110','11011011','11111111','10111101','11000011','01111110','00111100'],l:['00111100','01111110','11011011','11111111','11000011','10111101','01111110','00111100']};
 const face=win=>{let s='';FACE[win?'w':'l'].forEach((row,y)=>[...row].forEach((c,x)=>{if(c==='1')s+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}));return `<svg class="fc" viewBox="0 0 8 8" width="28" height="28" shape-rendering="crispEdges" style="fill:var(--${win?'g':'r'})" role="img" aria-label="${win?'Happy':'Sad'}">${s}</svg>`};
-function drawTr(){const cv=$('#pgv');if(!cv||!last)return;const k=last[0],x=last[1],cap=$('#pgn'),SV=srvOn();
+const pcache={};
+function pats(k,x,tf){const n=x.length,key=k+'|'+tf+'|'+n+'|'+x[n-1].t;if(pcache.key===key)return pcache.v;
+const v=[];
+for(let j=Math.max(30,n-100);j<=n-2;j++){const r=candle(k,x.slice(Math.max(0,j-299),j+1),tf);if(r.rk!==3)continue;
+const t=r.F[0].t,sh=/^Shrinking/.test(r.pat),eg=/engulfing/.test(r.pat),
+len=eg?2:sh?+((/There are (\d+)/.exec(t)||[])[1]||3):+((/It has (\d+) candles/.exec(t)||[])[1]||1);
+v.push({s:j-len,e:j,b:r.sig==='BUY',ch:eg?'E':sh?'S':'W'})}
+pcache.key=key;pcache.v=v;return v}
+function drawTr(){const cv=$('#pgv');if(!cv||!last)return;const k=last[0],x=last[1],cap=$('#pgn'),cp=$('#pgp'),SV=srvOn();
 const pp=pt(),P=tf!==pp?null:(SV?(srv&&srv.paper?srv.paper[tf]:null):paper());
-const N=Math.min(60,x.length),c=x.slice(-N),ms=TFM[tf]*60000,t0=c[0].t,end=c[N-1].t+ms;
-const w=cv.width=(cv.clientWidth*2)||600,H=cv.height=440,g=cv.getContext('2d');g.clearRect(0,0,w,H);
+const N=Math.min(100,x.length),c=x.slice(-N),off=x.length-N,ms=TFM[tf]*60000,t0=c[0].t,end=c[N-1].t+ms;
+const w=cv.width=(cv.clientWidth*2)||600,H=cv.height=560,g=cv.getContext('2d');g.clearRect(0,0,w,H);
 const st=getComputedStyle(document.documentElement),G=st.getPropertyValue('--g'),R=st.getPropertyValue('--r'),Mu=st.getPropertyValue('--mu'),Tx=st.getPropertyValue('--tx');
+const PT=pats(k,x,tf).filter(z=>z.e>=off);
 let tr=[];if(P){if(P.open&&P.open[k])tr.push({o:1,d:P.open[k].d,e:P.open[k].e,s:P.open[k].s,g:P.open[k].g,t:P.open[k].t});
 (P.hist||[]).forEach(z=>{if(z.k===k&&z.et)tr.push({o:0,d:z.d,e:z.e,s:z.s,g:z.g,t:z.et,xt:z.t,xp:z.x,pnl:z.pnl})})}
 tr=tr.filter(z=>z.t<end&&(z.o||z.xt>=t0));
-let lo=Math.min(...c.map(a=>a.l)),hi=Math.max(...c.map(a=>a.h));tr.forEach(z=>[z.e,z.s,z.g].forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v)}));
+const ch=Math.max(...c.map(a=>a.h)),cl=Math.min(...c.map(a=>a.l));let lo=cl,hi=ch;tr.forEach(z=>[z.e,z.s,z.g].forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v)}));
 const pad=(hi-lo)*.05||1;lo-=pad;hi+=pad;
 const Y=v=>H-10-(v-lo)/(hi-lo)*(H-20),X=tt=>Math.max(0,Math.min(w,((tt-t0)/ms+.5)/N*w)),cw=Math.max(2,w/N*.6),ln=(a,b,c2,d)=>{g.beginPath();g.moveTo(a,b);g.lineTo(c2,d);g.stroke()};
+g.font='bold 22px system-ui,sans-serif';g.textAlign='center';
+PT.forEach(z=>{const x1=(Math.max(z.s,off)-off)/N*w,x2=(z.e-off+1)/N*w;g.globalAlpha=.2;g.fillStyle=z.b?G:R;g.fillRect(x1,0,x2-x1,H);g.globalAlpha=1;g.fillText(z.ch,(x1+x2)/2,z.b?H-8:24)});
 c.forEach((a,i)=>{const cx=(i+.5)/N*w;g.strokeStyle=g.fillStyle=a.c>=a.o?G:R;g.lineWidth=2;ln(cx,Y(a.h),cx,Y(a.l));const y1=Y(Math.max(a.o,a.c)),y2=Y(Math.min(a.o,a.c));g.fillRect(cx-cw/2,y1,cw,Math.max(2,y2-y1))});
+g.font='20px system-ui,sans-serif';g.textAlign='right';g.fillStyle=Mu;g.fillText(p(ch),w-4,Math.max(20,Y(ch)-6));g.fillText(p(cl),w-4,Math.min(H-6,Y(cl)+20));
 g.font='bold 22px system-ui,sans-serif';
 tr.forEach(z=>{const x1=X(z.t),x2=z.o?w:X(z.xt);
 g.setLineDash([]);g.lineWidth=2;g.strokeStyle=Mu;ln(x1,Y(z.e),x2,Y(z.e));
@@ -320,7 +333,8 @@ g.setLineDash([10,8]);g.lineWidth=3;g.strokeStyle=R;ln(x1,Y(z.s),x2,Y(z.s));g.st
 g.textAlign='right';g.fillStyle=R;g.fillText('SL',Math.max(40,x2-4),Y(z.s)+(z.d>0?24:-8));g.fillStyle=G;g.fillText('TP',Math.max(40,x2-4),Y(z.g)+(z.d>0?-8:24));
 const ey=Y(z.e),sz=13,up=z.d>0;g.fillStyle=up?G:R;g.beginPath();if(up){g.moveTo(x1,ey-sz);g.lineTo(x1-sz,ey+sz*.7);g.lineTo(x1+sz,ey+sz*.7)}else{g.moveTo(x1,ey+sz);g.lineTo(x1-sz,ey-sz*.7);g.lineTo(x1+sz,ey-sz*.7)}g.closePath();g.fill();
 if(!z.o){g.fillStyle=z.pnl>0?G:R;g.strokeStyle=Tx;g.lineWidth=2;g.beginPath();g.arc(x2,Y(z.xp),9,0,6.2832);g.fill();g.stroke()}});
-cap.textContent=tf!==pp?T(`The paper bot trades the ${pp} chart. Switch the chart to ${pp} to see its trades.`):!P?T('Loading the server results...'):!tr.length?T('No paper trades for this market on this chart yet.'):T(`Paper trades shown: ${tr.length}.`)}
+cap.textContent=tf!==pp?T(`The paper bot trades the ${pp} chart. Switch the chart to ${pp} to see its trades.`):!P?T('Loading the server results...'):!tr.length?T('No paper trades for this market on this chart yet.'):T(`Paper trades shown: ${tr.length}.`);
+cp.textContent=T(`Patterns marked: ${PT.length}.`)}
 async function pushSrv(){const C=cfg();if(!C.su)return;
 if(!C.sk){$('#bn').textContent=T('Add your server password in Settings so your notification and paper settings reach the server.');$('#bn').hidden=false;return}
 try{const r=await fetch(C.su+'/config?k='+encodeURIComponent(C.sk),{method:'POST',body:JSON.stringify({nt:!!C.nt,nm:C.nm,ntf:C.ntf,bal:C.pbal,risk:C.prisk,ct:C.ct,ptf:ptf(),live:!!C.live,st:C.st==='ind'||C.st==='both'?C.st:'candle'})});if(!r.ok)throw Error(r.status===403?'wrong server password':'HTTP '+r.status)}
@@ -455,7 +469,7 @@ const decide=(k,x,bx,t)=>{const v=stv();if(v==='ind')return analyze(k,x,bx);cons
 const stOf=()=>{const v=srvOn()&&srv&&srv.st?srv.st:stv();return v==='ind'?'Indicators':v==='both'?'Both':'Candlestick patterns'};
 let srv=null,srvErr='';const srvOn=()=>!!cfg().su;
 async function loadSrv(){try{srv=await jget(cfg().su+'/status');srvErr=''}catch(e){srvErr=e.message}}
-const srvInfo=()=>{const t=Math.max(0,...Object.values(srv.px||{}).map(z=>z.t||0)),er=Object.entries(srv.err||{});return `<div class="mu small" style="margin-top:8px">Server prices saved at ${t?new Date(t).toLocaleTimeString():'never'}.${srv.live?' <span class=\"y\">Laptop bot feed is ON.</span>':''}${srvErr?' <span class=\"r\">Could not reach the server just now.</span>':''}${er.length?' <span class="r">Problem: '+er.map(([k,m])=>MK[k].n+': '+m).join('; ')+'</span>':''}</div>`};
+const srvInfo=()=>{const t=Math.max(0,...Object.values(srv.px||{}).map(z=>z.t||0));return `<div class="mu small" style="margin-top:8px">Server prices saved at ${t?new Date(t).toLocaleTimeString():'never'}.${srv.live?' <span class=\"y\">Laptop bot feed is ON.</span>':''}${srvErr?' <span class=\"r\">Could not reach the server just now.</span>':''}</div>`};
 const ptf=()=>TFS.includes(ls('ptf'))?ls('ptf'):'1h';
 const pt=()=>srvOn()&&srv&&srv.ptf?srv.ptf:ptf();
 const paper=()=>{try{const q=JSON.parse(ls('paper')||'null');if(q)return q}catch(e){}const b=+cfg().pbal||10000;return{b0:b,b,open:{},hist:[]}};
@@ -471,7 +485,7 @@ if(pos&&(pos.d>0?px>=pos.g:px<=pos.g))close(pos.g,'target hit');
 if(pos&&fresh&&r.sig!=='WAIT'&&(r.sig==='BUY'?1:-1)!==pos.d)close(px,'call reversed')}
 if(!pos&&fresh&&r.sig!=='WAIT'){const d=r.sig==='BUY'?1:-1,sd=1.5*r.A,l=Math.floor(P.b*(+cfg().prisk||1)/100/(sd*ct)*100)/100;
 if(l>=0.01)P.open[k]={d,e:px,s:px-d*sd,g:px+d*2*sd,l,t:Date.now()}}
-P.hist=P.hist.slice(-100);ls('paper',JSON.stringify(P))}
+P.hist=P.hist.slice(-500);ls('paper',JSON.stringify(P))}
 function showPaper(){const e=$('#pp');if(!e)return;const SV=srvOn(),P=SV?(srv&&srv.paper?srv.paper[pt()]:null):paper();
 const hd=f=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><b>Paper market</b>${f||''}<button type="button" class="q" data-q="p_d" aria-label="Help" style="margin-inline-start:8px">?</button></div><button id="pf" class="small">Refresh paper</button></div>`;
 if(!P){e.innerHTML=hd()+`<div class="mu small">${srvErr?'Could not reach the server: '+srvErr+'. Check the address in Settings, then tap Refresh paper.':'Loading the server results...'}</div>`;trDom(e);drawTr();return}
@@ -547,9 +561,6 @@ if(t===ptf()&&!srvOn())paperStep(k,x,r,fresh);
 return[x,b]}
 async function scanAll(){if(srvOn())return;for(const k of Object.keys(MK))for(const t of TFS)if(t===ptf()||(cfg().nt&&nOn(k)&&nTf(t)))try{await check(k,t,300)}catch(e){}showPaper()}
 
-function spark(a){const cv=$('#cv'),w=cv.width=cv.clientWidth*2,H=cv.height=160,g=cv.getContext('2d'),lo=Math.min(...a),hi=Math.max(...a);
-g.strokeStyle=getComputedStyle(document.body).color;g.lineWidth=3;g.beginPath();
-a.forEach((y,i)=>{const X=i/(a.length-1)*w,Y=H-8-(y-lo)/(hi-lo||1)*(H-16);i?g.lineTo(X,Y):g.moveTo(X,Y)});g.stroke()}
 function render(k,x,bx){
 last=[k,x,bx];
 const M=MK[k],live=x[x.length-1].c,sr=x.src||'',r=analyze(k,x.slice(0,-1),bx&&bx.slice(0,-1)),col={BUY:'g',SELL:'r',WAIT:'y'}[r.sig],dir=r.sig==='BUY'?1:-1;
@@ -562,15 +573,14 @@ const cr=candle(k,x.slice(0,-1),tf),cc={BUY:'g',SELL:'r',WAIT:'y'}[cr.sig],cd=`<
 $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b> <span class="mu small">from ${sr}</span></div>
 <div class="row"><div class="sig ${col}">${r.sig==='WAIT'?'Wait':r.sig==='BUY'?'Buy':'Sell'}</div><div class="api" id="api"></div></div>
 <div class="bar"><i class="${col}" style="width:${r.conf}%"></i></div>
-<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div><p>${r.note}</p>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv1}${cmb}${lv2}</div>
+<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv1}${cmb}${lv2}</div>
 ${cd}
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
-${C.pg===false?'':'<div class="card" id="pgc"><div class="qr"><b>Paper market graph</b><button type="button" class="q" data-q="g_l" aria-label="Help">?</button></div><canvas id="pgv"></canvas><div class="mu small" id="pgn"></div><p class="mu small" id="g_l"'+qh('g_l')+'>Red dashed line is the stop-loss, green dashed line is the target. An up triangle is a Buy, a down triangle is a Sell, and a dot is where the trade closed.</p></div>'}
+${C.pg===false?'':'<div class="card" id="pgc"><div class="qr"><b>Candle chart</b><button type="button" class="q" data-q="g_l" aria-label="Help">?</button></div><div class="mu small">Last 100 candles</div><canvas id="pgv"></canvas><div class="mu small" id="pgn"></div><div class="mu small" id="pgp"></div><p class="mu small" id="g_l"'+qh('g_l')+'>Shaded bands are candlestick patterns the bot confirmed: green is a Buy pattern, red is a Sell pattern. W is a long wick candle, S is shrinking candles and E is an engulfing candle. Red dashed line is the stop-loss, green dashed line is the target. An up triangle is a Buy, a down triangle is a Sell, and a dot is where the trade closed.</p></div>'}
 <div class="card" id="pp"></div>
 <div class="card"><b>Past results of the bot</b><div class="mu small">Strategy: ${stOf()}</div><p id="btx" class="small"></p></div>
-<div class="card"><canvas id="cv"></canvas><div class="mu small">Last 80 candles</div></div>
 <details class="card"${dOpen?' open':''}><summary>Strategy: ${M.strat}</summary><p class="mu">${M.d} Stop-loss and targets use ATR, the average candle range: stop 1.5x, targets 1.5x and 3x.</p></details>`;
-trDom($('#out'));spark(x.slice(-80).map(a=>a.c));showBt();showApi();showPaper();
+trDom($('#out'));showBt();showApi();showPaper();
 const bk=k+'|'+tf;if(!bt[bk]||Date.now()-bt[bk].ts>6e5)setTimeout(()=>{const q=backtest(k,x.slice(0,-1),bx&&bx.slice(0,-1));q.ts=Date.now();bt[bk]=q;showBt()},50);
 $('#st').textContent=T('Updated '+new Date().toLocaleTimeString()+'. The bot uses closed candles, so its call changes at most once per '+({'15m':'15 minutes','30m':'30 minutes','1h':'hour','4h':'4 hours'})[tf]+'.'+(/PAXG/.test(sr)?' Gold uses PAXG, a gold token, as a stand-in.':'')+(M.td&&!tdKey(k)?' A Twelve Data key in Settings gives true spot prices.':'')+(M.err?' API problem: '+M.err+' Using the next source.':''))}
 async function load(){const my=++tok;$('#st').textContent=T('Updating...');$('#rf').disabled=true;$('#rf').textContent=T('Refreshing...');
@@ -584,8 +594,10 @@ document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||
 document.addEventListener('change',e=>{if(e.target.id==='xp'&&last){xp[cur]=+e.target.value||0;render(...last)}});
 function buildSel(){
 $('#sls').innerHTML=slots().map((k,i)=>`<label>Slot ${i+1}<select data-sl="${i}" data-prev="${k}">${Object.keys(MK).map(z=>`<option value="${z}"${z===k?' selected':''}>${MK[z].n}</option>`).join('')}</select></label>`).join('');
-$('#nms').innerHTML=slots().map(k=>`<label><input type="checkbox" id="m_${k}"><span>${MK[k].n}</span></label>`).join('');
-$('#ntfs').innerHTML=TFS.map(t=>`<label><input type="checkbox" id="t_${t}"><span>${t}</span></label>`).join('')}
+$('#nms').innerHTML=slots().map(k=>`<button type="button" data-nm="${k}">${MK[k].n}</button>`).join('');
+$('#ntfs').innerHTML=TFS.map(t=>`<button type="button" data-nt="${t}">${t}</button>`).join('')}
+document.addEventListener('click',e=>{const b=e.target.closest('#nms button,#ntfs button');if(b)b.classList.toggle('on')});
+const nbOn=(a,v,d)=>{const b=$('[data-'+a+'="'+v+'"]');return b?b.classList.contains('on'):d};
 document.addEventListener('change',e=>{const z=e.target;if(!z.dataset||z.dataset.sl===undefined)return;const old=z.dataset.prev;document.querySelectorAll('[data-sl]').forEach(o=>{if(o!==z&&o.value===z.value){o.value=old;o.dataset.prev=old}});z.dataset.prev=z.value});
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{applyTheme();if(last)render(...last)});
 document.addEventListener('toggle',e=>{if(e.target.closest&&e.target.closest('#out'))dOpen=e.target.open},true);
@@ -596,9 +608,9 @@ document.addEventListener('click',async e=>{if(e.target.id!=='pr'||!confirm(T('R
 if(srvOn()){const C=cfg();if(!C.sk){alert(T('Add your server password in Settings first.'));return}
 try{await jget(C.su+'/reset?tf='+pt()+'&k='+encodeURIComponent(C.sk));await loadSrv()}catch(x){alert('Could not reset: '+x.message+(x.message==='HTTP 403'?' (wrong server password)':''))}}
 else ls('paper','');showPaper()});
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};buildSel();$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#k_XAU').value=tdKey('XAU');$('#su').value=C.su||'';$('#sk').value=C.sk||'';$('#live').checked=!!C.live;$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#pbal').value=C.pbal||10000;$('#prisk').value=C.prisk||1;$('#pg').checked=C.pg!==false;setSeg(C.st==='ind'||C.st==='both'?C.st:'candle');$('#nt').checked=!!C.nt;slots().forEach(k=>$('#m_'+k).checked=nOn(k));$('#thm').value=C.th||'dark';$('#lg').value=C.lg||'en';TFS.forEach(t=>$('#t_'+t).checked=nTf(t));trDom($('#dl'));$('#dl').showModal()};
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};buildSel();$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#k_XAU').value=tdKey('XAU');$('#su').value=C.su||'';$('#sk').value=C.sk||'';$('#live').checked=!!C.live;$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#pbal').value=C.pbal||10000;$('#prisk').value=C.prisk||1;$('#pg').checked=C.pg!==false;setSeg(C.st==='ind'||C.st==='both'?C.st:'candle');$('#nt').checked=!!C.nt;slots().forEach(k=>$('[data-nm="'+k+'"]').classList.toggle('on',nOn(k)));$('#thm').value=C.th||'dark';$('#lg').value=C.lg||'en';TFS.forEach(t=>$('[data-nt="'+t+'"]').classList.toggle('on',nTf(t)));trDom($('#dl'));$('#dl').showModal()};
 $('#sv').onclick=async()=>{const lg=$('#lg').value,oldLg=cfg().lg||'en';
-ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,su:(u=>u&&!/^https?:\/\//.test(u)?'https://'+u:u)($('#su').value.trim().replace(/\/+$/,'')),sk:$('#sk').value.trim(),live:$('#live').checked,bk:{XAU:$('#b_XAU').value.trim()},th:$('#thm').value,lg,pbal:+$('#pbal').value||10000,prisk:+$('#prisk').value||1,pg:$('#pg').checked,st:$('#stseg').dataset.v,sl:[...document.querySelectorAll('[data-sl]')].map(z=>z.value),ntf:TFS.filter(t=>$('#t_'+t).checked),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,$('#m_'+k)?$('#m_'+k).checked:nOn(k)])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim()}));
+ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,su:(u=>u&&!/^https?:\/\//.test(u)?'https://'+u:u)($('#su').value.trim().replace(/\/+$/,'')),sk:$('#sk').value.trim(),live:$('#live').checked,bk:{XAU:$('#b_XAU').value.trim()},th:$('#thm').value,lg,pbal:+$('#pbal').value||10000,prisk:+$('#prisk').value||1,pg:$('#pg').checked,st:$('#stseg').dataset.v,sl:[...document.querySelectorAll('[data-sl]')].map(z=>z.value),ntf:TFS.filter(t=>nbOn('nt',t,true)),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,nbOn('nm',k,nOn(k))])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim()}));
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
 if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent=T('Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.');$('#bn').hidden=false}
 await pushSrv();

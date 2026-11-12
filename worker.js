@@ -187,7 +187,7 @@ if(pos&&(pos.d>0?px>=pos.g:px<=pos.g))close(pos.g,'target hit');
 if(pos&&fresh&&r.sig!=='WAIT'&&(r.sig==='BUY'?1:-1)!==pos.d)close(px,'call reversed')}
 if(!pos&&fresh&&r.sig!=='WAIT'){const d=r.sig==='BUY'?1:-1,sd=1.5*r.A,l=Math.floor(P.b*riskOf(C,env)/100/(sd*ct)*100)/100;
 if(l>=0.01){P.open[k]={d,e:px,s:px-d*sd,g:px+d*2*sd,l,t:Date.now()};changed=true}}
-P.hist=P.hist.slice(-100);return changed}
+P.hist=P.hist.slice(-500);return changed}
 
 // ---- alerts ----
 async function notify(env,k,r,px,tf){
