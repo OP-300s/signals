@@ -1,4 +1,5 @@
 // My Bot server for Cloudflare Workers (free plan).
+// The paper bot trades on all four timeframes (one paper account each). The phone toggle only chooses which account the laptop copier gets.
 // The strategy code below (indicators and candlestick patterns) is copied from index.html. Do not edit it.
 // Needs: KV binding named KV, variables TD_KEY, NTFY_TOPIC (BAL and RISK are optional now; the app sends them).
 
@@ -8,6 +9,7 @@ ETH:{n:'Ethereum',ct:1,sym:'ETHUSDT',cb:'ETH-USD',kind:'ETH',max:8,thr:4,q:.12},
 XAU:{n:'Gold',ct:100,td:'XAU/USD',fut:'XAUUSDT',sym:'PAXGUSDT',kind:'XAU',wk:1,max:5,thr:3,q:.04},
 XAG:{n:'Silver',ct:5000,fut:'XAGUSDT',kind:'XAU',wk:1,skip:1,max:5,thr:3,q:.08}};
 const ORDER=['XAU','XAG','BTC','ETH'];
+const SEQ=['15m','30m','15m','1h','15m','30m','15m','4h']; // each market is checked every 5 min, one timeframe per check
 
 // ---- strategy (copied from index.html) ----
 const ema=(a,n)=>{const k=2/(n+1);let q=a[0];return a.map((v,i)=>i?(q=v*k+q*(1-k)):v)};
@@ -143,7 +145,7 @@ const TFS=['15m','30m','1h','4h'],TD_IV={'15m':'15min','30m':'30min','1h':'1h','
 const jget=async u=>{const r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);return r.json()};
 const kl=d=>d.map(a=>({t:a[0],o:+a[1],h:+a[2],l:+a[3],c:+a[4],v:+a[5]}));
 async function cbGet(id,g,pages){let end=Date.now(),all=[];
-for(let i=0;i<pages;i++){const st=end-300*g*1000,d=await jget(`https://api.exchange.coinbase.com/products/${id}/candles?granularity=${g}&start=${new Date(st).toISOString()}&end=${new Date(end).toISOString()}`);
+for(let i=0;i<pages;i++){const st=end-290*g*1000,d=await jget(`https://api.exchange.coinbase.com/products/${id}/candles?granularity=${g}&start=${new Date(st).toISOString()}&end=${new Date(end).toISOString()}`);
 all=all.concat(d.map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]})));end=st}
 const seen={};return all.sort((a,b)=>a.t-b.t).filter(a=>seen[a.t]?0:(seen[a.t]=1))}
 function agg(a,m,ms){const out=[];let cur=null;
@@ -159,7 +161,7 @@ const BL=[];if(M.fut)BL.push(['https://fapi.binance.com/fapi/v1/klines?symbol='+
 if(M.sym)BL.push(['https://data-api.binance.vision/api/v3/klines?symbol='+M.sym,'Binance '+M.sym],['https://api.binance.com/api/v3/klines?symbol='+M.sym,'Binance '+M.sym]);
 for(const[u,src]of BL)try{const r=kl(await jget(`${u}&interval=${t}&limit=${n}`));r.src=src;return r}catch(e){}
 if(M.cb&&CB_G[t]){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${CB_G[t]}`);const r=d.reverse().map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}));r.src='Coinbase '+M.cb;return r}
-if(M.cb&&CB_A[t]){const[bt,m]=CB_A[t],r=agg(await cbGet(M.cb,CB_G[bt],t==='4h'?2:1),m,TF_MS[bt]);r.src='Coinbase '+M.cb+' ('+bt+' candles joined)';return r}
+if(M.cb&&CB_A[t]){const[bt,m]=CB_A[t];let raw;try{raw=await cbGet(M.cb,CB_G[bt],2)}catch(e){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${CB_G[bt]}`);raw=d.reverse().map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}))}const r=agg(raw,m,TF_MS[bt]);r.src='Coinbase '+M.cb+' ('+bt+' candles joined)';return r}
 throw Error('Could not load prices for '+M.n+(M.err?' ('+M.err+')':''))}
 
 // ---- settings: the app sends them to /config; variables are the fallback ----
@@ -213,7 +215,7 @@ const fresh=!!old&&old.sig!==r.sig&&now-old.t<WIN[tf]*60000;
 if(!old||old.sig!==r.sig||now-old.t>36e5)await env.KV.put(lk,JSON.stringify({sig:r.sig,t:now}));
 if(env.NTFY_TOPIC&&fresh&&r.sig!=='WAIT'&&wants(C,env,k,tf))await notify(env,k,r,px,tf);
 let open=0;
-if(tf===ptfOf(C)){const pk='paper:'+tf;let P=await env.KV.get(pk,'json'),isNew=!P;if(!P)P=newPaper(env,C);
+{const pk='paper:'+tf;let P=await env.KV.get(pk,'json'),isNew=!P;if(!P)P=newPaper(env,C);
 if(paperStep(P,k,x,r,fresh,env,C)||isNew)await env.KV.put(pk,JSON.stringify(P));open=P.open[k]?1:0}
 const xk='px:'+k,old2=await env.KV.get(xk,'json');
 if(!old2||now-old2.t>18e5)await env.KV.put(xk,JSON.stringify({p:px,t:now,src:x.src}));
@@ -228,8 +230,8 @@ return{k,tf,error:e.message}}}
 export default{
 async scheduled(c,env){
 const k=ORDER[new Date(c.scheduledTime).getUTCMinutes()%5];if(!k||MK[k].skip)return;
-const C=await getC(env),pt=ptfOf(C),need=TFS.filter(t=>t===pt||wants(C,env,k,t));
-await run(k,need[Math.floor(c.scheduledTime/300000)%need.length],env,false,C)},
+const C=await getC(env);
+await run(k,SEQ[Math.floor(c.scheduledTime/300000)%SEQ.length],env,false,C)},
 async fetch(req,env){
 const u=new URL(req.url),H={'Access-Control-Allow-Origin':'*','Content-Type':'application/json'};
 if(req.method==='OPTIONS')return new Response(null,{headers:{...H,'Access-Control-Allow-Headers':'*'}});

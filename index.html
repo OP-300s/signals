@@ -27,7 +27,7 @@ button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);bor
 .lv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .lv div{border-top:1px solid var(--bd);padding-top:6px;font-weight:600}.lv span{display:block;font-weight:400;color:var(--mu);font-size:13px}
 .rs{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--bd)}.rs:first-of-type{margin-top:8px}
-.ch{flex:none;width:34px;height:34px;border-radius:6px;border:2px solid currentColor;display:grid;place-items:center;font-weight:700;font-size:14px}
+.ch{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid currentColor;display:grid;place-items:center;font-weight:700;font-size:14px}
 canvas{width:100%;height:80px;display:block}
 summary{font-weight:600}
 .hb{display:flex;gap:8px}.hb button{padding:6px 12px;font-size:14px}
@@ -150,7 +150,7 @@ const AD={
 'Risk applies to new paper trades.':'تُطبَّق المخاطرة على الصفقات التجريبية الجديدة.','A new balance starts when you reset the paper account.':'يبدأ الرصيد الجديد عند إعادة ضبط الحساب التجريبي.','Paper trades use the unit sizes above.':'الصفقات التجريبية تستخدم أحجام الوحدات أعلاه.','With a server, fill in your server password and tap Save to send these to your server.':'مع وجود خادم، أدخل كلمة مرور الخادم واضغط حفظ لإرسالها إلى خادمك.',
 'Server (optional)':'الخادم (اختياري)','Server address':'عنوان الخادم','Server password':'كلمة مرور الخادم',
 'With a server address, paper trading and notifications run on your Cloudflare server and the Paper market card shows its results.':'مع وجود عنوان خادم، يعمل التداول التجريبي والإشعارات على خادم Cloudflare الخاص بك وتعرض بطاقة السوق التجريبي نتائجه.',
-'The password is your ntfy topic.':'كلمة المرور هي موضوع ntfy الخاص بك.','It is used to send your settings to the server and to reset the paper account.':'تُستخدم لإرسال إعداداتك إلى الخادم ولإعادة ضبط الحساب التجريبي.','Leave both empty to keep everything on this phone.':'اتركهما فارغين لإبقاء كل شيء على هذا الهاتف.','Let my laptop bot copy the paper trades':'السماح لروبوت اللابتوب بنسخ الصفقات التجريبية','Off by default.':'مغلق افتراضيًا.','When on, the server shares the open paper trades with the bot program on your laptop.':'عند التفعيل، يشارك الخادم الصفقات التجريبية المفتوحة مع برنامج الروبوت على لابتوبك.','Turn it off and tap Save to stop any new real trades.':'أوقفه واضغط حفظ لإيقاف أي صفقات حقيقية جديدة.','Laptop bot feed is ON.':'تغذية روبوت اللابتوب مفعّلة.',
+'The password is your ntfy topic.':'كلمة المرور هي موضوع ntfy الخاص بك.','It is used to send your settings to the server and to reset the paper account.':'تُستخدم لإرسال إعداداتك إلى الخادم ولإعادة ضبط الحساب التجريبي.','Leave both empty to keep everything on this phone.':'اتركهما فارغين لإبقاء كل شيء على هذا الهاتف.','Let my laptop bot copy the paper trades':'السماح لروبوت اللابتوب بنسخ الصفقات التجريبية','Off by default.':'مغلق افتراضيًا.','When on, the server shares the open paper trades with the bot program on your laptop.':'عند التفعيل، يشارك الخادم الصفقات التجريبية المفتوحة مع برنامج الروبوت على لابتوبك.','Turn it off and tap Save to stop any new real trades.':'أوقفه واضغط حفظ لإيقاف أي صفقات حقيقية جديدة.','Laptop bot feed is ON.':'تغذية روبوت اللابتوب مفعّلة.','Your server trades by itself on all four charts, even when the app is closed, and you can only watch.':'خادمك يتداول وحده على الفريمات الأربعة حتى عندما يكون التطبيق مغلقًا، وأنت تشاهد فقط.','The buttons choose which chart you see here and which one your laptop bot copies.':'الأزرار تحدد أي فريم تراه هنا وأي فريم يقوم روبوت اللابتوب بنسخه.',
 'Appearance':'المظهر','Theme':'السمة','Auto (follow my phone)':'تلقائي (حسب هاتفي)','Light':'فاتح','Dark':'داكن',
 'Language':'اللغة','Choose language':'اختر اللغة','Changing the language reloads the app.':'تغيير اللغة يعيد تحميل التطبيق.',
 'Not financial advice.':'ليست نصيحة مالية.','The bot follows fixed rules and can be wrong.':'الروبوت يتبع قواعد ثابتة وقد يخطئ.','Never risk money you cannot afford to lose.':'لا تخاطر أبدًا بمال لا تستطيع تحمل خسارته.',
@@ -287,7 +287,7 @@ L.forEach(n=>{const s=n.nodeValue,t=s.trim();if(!t)return;const o=T(t);if(o!==t)
 if(AR_ON){document.documentElement.lang='ar';document.documentElement.dir='rtl'}
 const TFS=['15m','30m','1h','4h'],TFM={'15m':15,'30m':30,'1h':60,'4h':240},TFD={'15m':'15min','30m':'30min','1h':'1h','4h':'4h'},TFG={'15m':900,'1h':3600},CBA={'30m':['15m',2],'4h':['1h',4]};
 async function cbGet(id,g,pages){let end=Date.now(),all=[];
-for(let i=0;i<pages;i++){const st=end-300*g*1000,d=await jget(`https://api.exchange.coinbase.com/products/${id}/candles?granularity=${g}&start=${new Date(st).toISOString()}&end=${new Date(end).toISOString()}`);
+for(let i=0;i<pages;i++){const st=end-290*g*1000,d=await jget(`https://api.exchange.coinbase.com/products/${id}/candles?granularity=${g}&start=${new Date(st).toISOString()}&end=${new Date(end).toISOString()}`);
 all=all.concat(d.map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]})));end=st}
 const seen={};return all.sort((a,b)=>a.t-b.t).filter(a=>seen[a.t]?0:(seen[a.t]=1))}
 function agg(a,m,ms){const out=[];let cur=null;
@@ -311,7 +311,7 @@ len=eg?2:sh?+((/There are (\d+)/.exec(t)||[])[1]||3):+((/It has (\d+) candles/.e
 v.push({s:j-len,e:j,b:r.sig==='BUY',ch:eg?'E':sh?'S':'W'})}
 pcache.key=key;pcache.v=v;return v}
 function drawTr(){const cv=$('#pgv');if(!cv||!last)return;const k=last[0],x=last[1],cap=$('#pgn'),cp=$('#pgp'),SV=srvOn();
-const pp=pt(),P=tf!==pp?null:(SV?(srv&&srv.paper?srv.paper[tf]:null):paper());
+const pp=pt(),P=SV?(srv&&srv.paper?srv.paper[tf]:null):(tf!==pp?null:paper());
 const N=Math.min(100,x.length),c=x.slice(-N),off=x.length-N,ms=TFM[tf]*60000,t0=c[0].t,end=c[N-1].t+ms;
 const w=cv.width=(cv.clientWidth*2)||600,H=cv.height=560,g=cv.getContext('2d');g.clearRect(0,0,w,H);
 const st=getComputedStyle(document.documentElement),G=st.getPropertyValue('--g'),R=st.getPropertyValue('--r'),Mu=st.getPropertyValue('--mu'),Tx=st.getPropertyValue('--tx');
@@ -333,7 +333,7 @@ g.setLineDash([10,8]);g.lineWidth=3;g.strokeStyle=R;ln(x1,Y(z.s),x2,Y(z.s));g.st
 g.textAlign='right';g.fillStyle=R;g.fillText('SL',Math.max(40,x2-4),Y(z.s)+(z.d>0?24:-8));g.fillStyle=G;g.fillText('TP',Math.max(40,x2-4),Y(z.g)+(z.d>0?-8:24));
 const ey=Y(z.e),sz=13,up=z.d>0;g.fillStyle=up?G:R;g.beginPath();if(up){g.moveTo(x1,ey-sz);g.lineTo(x1-sz,ey+sz*.7);g.lineTo(x1+sz,ey+sz*.7)}else{g.moveTo(x1,ey+sz);g.lineTo(x1-sz,ey-sz*.7);g.lineTo(x1+sz,ey-sz*.7)}g.closePath();g.fill();
 if(!z.o){g.fillStyle=z.pnl>0?G:R;g.strokeStyle=Tx;g.lineWidth=2;g.beginPath();g.arc(x2,Y(z.xp),9,0,6.2832);g.fill();g.stroke()}});
-cap.textContent=tf!==pp?T(`The paper bot trades the ${pp} chart. Switch the chart to ${pp} to see its trades.`):!P?T('Loading the server results...'):!tr.length?T('No paper trades for this market on this chart yet.'):T(`Paper trades shown: ${tr.length}.`);
+cap.textContent=!SV&&tf!==pp?T(`The paper bot trades the ${pp} chart. Switch the chart to ${pp} to see its trades.`):!P?T('Loading the server results...'):!tr.length?T('No paper trades for this market on this chart yet.'):T(`Paper trades shown: ${tr.length}.`);
 cp.textContent=T(`Patterns marked: ${PT.length}.`)}
 async function pushSrv(){const C=cfg();if(!C.su)return;
 if(!C.sk){$('#bn').textContent=T('Add your server password in Settings so your notification and paper settings reach the server.');$('#bn').hidden=false;return}
@@ -491,7 +491,7 @@ const hd=f=>`<div style="display:flex;justify-content:space-between;align-items:
 if(!P){e.innerHTML=hd()+`<div class="mu small">${srvErr?'Could not reach the server: '+srvErr+'. Check the address in Settings, then tap Refresh paper.':'Loading the server results...'}</div>`;trDom(e);drawTr();return}
 const H=P.hist,n=H.length,w=H.filter(z=>z.pnl>0).length,ops=Object.keys(P.open),sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
 const fl=ops.reduce((q,k)=>{const o=P.open[k],ct=+(((SV?srv.ct:cfg().ct)||{})[k])||MK[k].ct;return q+o.d*(((SV?((srv.px||{})[k]||{}).p:px0[k])||o.e)-o.e)*o.l*ct},0),eq=P.b+fl;
-e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small" id="p_d"${qh('p_d')}>A practice account with pretend money on live prices. ${SV?'Your server trades by itself on the '+pt()+' chart, even when the app is closed, and you can only watch.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="mu small">Paper bot strategy: ${stOf()}</div><div class="pt"><span class="mu small">Trades on</span>${TFS.map(t=>`<button data-pt="${t}" class="${pt()===t?'on':''}">${t}</button>`).join('')}</div>${SV?srvInfo():''}
+e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small" id="p_d"${qh('p_d')}>A practice account with pretend money on live prices. ${SV?'Your server trades by itself on all four charts, even when the app is closed, and you can only watch. The buttons choose which chart you see here and which one your laptop bot copies.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="mu small">Paper bot strategy: ${stOf()}</div><div class="pt"><span class="mu small">Trades on</span>${TFS.map(t=>`<button data-pt="${t}" class="${pt()===t?'on':''}">${t}</button>`).join('')}</div>${SV?srvInfo():''}
 <div class="lv"><div><span>Balance</span>$${P.b.toFixed(2)}</div><div><span>Profit or loss</span><b class="${eq>=P.b0?'g':'r'}">${sg(eq-P.b0)}</b></div><div><span>Win rate</span>${n?Math.round(w/n*100):0}%</div><div><span>Loss rate</span>${n?Math.round((n-w)/n*100):0}%</div></div>
 <div class="mu small" style="margin-top:8px">${n} closed trades</div>
 ${ops.length?'<div class="mu small" style="margin-top:8px">Open now</div>'+ops.map(k=>{const o=P.open[k];return `<div class="small">${MK[k].n} ${o.d>0?'Buy':'Sell'} ${o.l.toFixed(2)} lot at ${p(o.e)}</div>`}).join(''):''}
@@ -544,7 +544,7 @@ const BL=[];if(M.fut)BL.push(['https://fapi.binance.com/fapi/v1/klines?symbol='+
 if(M.sym)BL.push(['https://data-api.binance.vision/api/v3/klines?symbol='+M.sym,'Binance '+M.sym],['https://api.binance.com/api/v3/klines?symbol='+M.sym,'Binance '+M.sym]);
 for(const[u,src]of BL)try{const r=kl(await jget(`${u}&interval=${t}&limit=${n}`));r.src=src;return r}catch(e){}
 if(M.cb&&TFG[t]){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${TFG[t]}`);const r=d.reverse().map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}));r.src='Coinbase '+M.cb;return r}
-if(M.cb&&CBA[t]){const[bt,m]=CBA[t],r=agg(await cbGet(M.cb,TFG[bt],t==='4h'?2:1),m,TFM[bt]*60000);r.src='Coinbase '+M.cb+' ('+bt+' candles joined)';return r}
+if(M.cb&&CBA[t]){const[bt,m]=CBA[t];let raw;try{raw=await cbGet(M.cb,TFG[bt],2)}catch(e){const d=await jget(`https://api.exchange.coinbase.com/products/${M.cb}/candles?granularity=${TFG[bt]}`);raw=d.reverse().map(a=>({t:a[0]*1000,l:a[1],h:a[2],o:a[3],c:a[4],v:a[5]}))}const r=agg(raw,m,TFM[bt]*60000);r.src='Coinbase '+M.cb+' ('+bt+' candles joined)';return r}
 throw Error('Could not load prices for '+M.n)}
 
 async function notify(k,r,px,tt){
