@@ -206,6 +206,10 @@ M.err='';
 try{
 const C=C0||await getC(env);
 const st=C.st==='ind'||C.st==='both'?C.st:'candle';
+if((C.on||{})[tf]===false){const pk='paper:'+tf,P=await env.KV.get(pk,'json');
+if(!P||!P.open[k])return{k,tf,skipped:'switched off'};
+const x=await candles(k,tf,env);if(paperStep(P,k,x,{sig:'WAIT',A:0},false,env,C))await env.KV.put(pk,JSON.stringify(P));
+return{k,tf,skipped:'switched off, only watching the open trade'}}
 const x=await candles(k,tf,env),b=(k==='ETH'&&st!=='candle')?await candles('BTC',tf,env):null;
 const xs=x.slice(0,-1),bs=b&&b.slice(0,-1);let r;
 if(st==='ind')r=analyze(k,xs,bs);else{r=candle(k,xs,tf);if(st==='both'&&r.sig==='WAIT')r=analyze(k,xs,bs)}
@@ -238,12 +242,12 @@ if(req.method==='OPTIONS')return new Response(null,{headers:{...H,'Access-Contro
 const ok=!!env.NTFY_TOPIC&&u.searchParams.get('k')===env.NTFY_TOPIC;
 const J=(o,s=200)=>new Response(JSON.stringify(o),{status:s,headers:H});
 const tfq=(v,d)=>TFS.includes(v)?v:d;
-if(u.pathname==='/status'){
+if(u.pathname==='/status'){if(!ok)return J({error:'wrong password'},403);
 const C=await getC(env);
 const rest=await Promise.all([...TFS.map(t=>env.KV.get('paper:'+t,'json')),...ORDER.map(k=>env.KV.get('px:'+k,'json')),...ORDER.map(k=>env.KV.get('err:'+k))]);
 const paper={},px={},err={},ct={};TFS.forEach((t,i)=>paper[t]=rest[i]||newPaper(env,C));
 ORDER.forEach((k,i)=>{if(rest[4+i])px[k]=rest[4+i];if(rest[8+i])err[k]=rest[8+i];ct[k]=ctOf(k,env,C)});
-return J({v:5,now:Date.now(),ptf:ptfOf(C),live:C.live===true,st:C.st==='ind'||C.st==='both'?C.st:'candle',paper,px,err,ct})}
+return J({v:5,now:Date.now(),on:C.on||{},ptf:ptfOf(C),live:C.live===true,st:C.st==='ind'||C.st==='both'?C.st:'candle',paper,px,err,ct})}
 if(u.pathname==='/config'){if(!ok)return J({error:'wrong password'},403);
 if(req.method!=='POST')return J({error:'use POST'},405);
 let d;try{d=JSON.parse(await req.text())}catch(e){return J({error:'bad data'},400)}
@@ -254,6 +258,7 @@ if(+d.bal>0)o.bal=+d.bal;if(+d.risk>0&&+d.risk<=100)o.risk=+d.risk;
 if(d.ct&&typeof d.ct==='object'){o.ct={};for(const k of ORDER)if(+d.ct[k]>0)o.ct[k]=+d.ct[k]}
 if(TFS.includes(d.ptf))o.ptf=d.ptf;
 if(typeof d.live==='boolean')o.live=d.live;
+if(d.on&&typeof d.on==='object'){o.on={};for(const t of TFS)if(typeof d.on[t]==='boolean')o.on[t]=d.on[t]}
 if(d.st==='ind'||d.st==='candle'||d.st==='both')o.st=d.st;
 await env.KV.put('cfg',JSON.stringify({...(await getC(env)),...o}));return J({saved:true})}
 if(u.pathname==='/orders'){if(!ok)return new Response('wrong password',{status:403,headers:{'Content-Type':'text/plain'}});
