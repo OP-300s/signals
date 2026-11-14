@@ -8,14 +8,14 @@
 <title>My Bot</title>
 <script>try{const c=JSON.parse(localStorage.getItem('cfg')||'{}'),m=c.th||'dark';document.documentElement.dataset.theme=m==='auto'?(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'):m}catch(e){}</script>
 <style>
-:root{--bg:#f2f2f2;--cd:#fff;--tx:#111;--mu:#6b6b6b;--bd:#d9d9d9;--g:#1f8a5b;--r:#c8433a;--y:#b7791f}
+:root{--bg:#f2f2f2;--cd:#fff;--tx:#111;--mu:#6b6b6b;--bd:#d9d9d9;--g:#1f8a5b;--r:#c8433a;--y:#b7791f;--sel:var(--tx);--selt:var(--bg)}
 :root[data-theme=dark]{--bg:#000;--cd:#161616;--tx:#f5f5f5;--mu:#9b9b9b;--bd:#2e2e2e;--g:#3fbf86;--r:#ef6a60;--y:#e0a542}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,Roboto,sans-serif;padding:max(14px,env(safe-area-inset-top)) 14px max(20px,env(safe-area-inset-bottom));max-width:560px;margin-inline:auto}
 h1{font-size:20px;margin:0 0 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);border-radius:6px;padding:8px 14px}
 .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.tabs button{flex:1 1 28%}
-.tabs .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.tabs .on{background:var(--sel);color:var(--selt);border-color:var(--sel)}
 .sm button{padding:5px 10px;flex:1 1 20%}
 .card{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:16px;margin:12px 0}
 .mu{color:var(--mu)}.small{font-size:13px}
@@ -32,27 +32,27 @@ canvas{width:100%;height:80px;display:block}
 summary{font-weight:600}
 .hb{display:flex;gap:6px}.hb button{padding:6px 10px;font-size:14px}
 .bn{background:var(--tx);color:var(--bg);border-radius:6px;padding:12px 14px;margin-bottom:12px;font-weight:600}
-dialog{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:8px;width:min(92vw,420px)}
+dialog{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:8px;width:min(720px,calc(100vw - 8px));max-width:none;padding:16px}
 dialog label{display:block;margin:10px 0;font-size:14px;color:var(--mu)}
 dialog input:not([type=checkbox]),dialog select,#xp{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--tx)}
-.ck{display:flex;gap:10px;align-items:center;margin:12px 0}.ck input{width:22px;height:22px}
-dialog{max-height:88vh;overflow:auto}
+.ck{display:flex;gap:12px;align-items:center;margin:12px 0}.ck input{appearance:none;-webkit-appearance:none;flex:none;width:44px;height:24px;margin:0;border:1px solid var(--bd);border-radius:12px;background:var(--bg);position:relative}.ck input:after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--mu)}.ck input:checked{background:var(--sel);border-color:var(--sel)}.ck input:checked:after{left:22px;background:var(--selt)}
+dialog{max-height:92vh;overflow:auto;overscroll-behavior:contain}dialog::backdrop{background:#000}#dl{padding:0;overflow:hidden;max-height:none;height:calc(100vh - 16px);height:calc(100dvh - 16px)}#dl[open]{display:flex;flex-direction:column}.xb{flex:none;display:flex;justify-content:flex-end;padding:8px 8px 6px;background:var(--cd);position:relative;z-index:2}.db{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 16px 16px}.xb button{width:36px;height:36px;padding:0;font-size:18px;line-height:1;background:var(--cd)}body:has(dialog[open]){overflow:hidden}
 dialog h3{font-size:16px;margin:18px 0 4px;padding-top:14px;border-top:1px solid var(--bd)}
-dialog h3:first-child{border:0;margin-top:0;padding-top:0}
+dialog h3:first-of-type{border:0;margin-top:0;padding-top:0}
 #mk{display:grid;grid-template-columns:1fr 1fr}#mk button{padding:16px 8px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
 .row{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:14px}.row .sig{margin:0}
 .lot{margin-top:14px}.lot span{display:block;color:var(--mu);font-size:13px}.lot b{font-size:34px;line-height:1.1}.lot p{margin:2px 0 0}
 .cm{margin-top:14px}.cm span{font-weight:700;font-size:18px}.cm p{margin:4px 0 0}
-.pt{display:flex;gap:6px;align-items:center;margin-top:8px}.pt button{padding:5px 14px;font-size:13px}.pt .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.pt{display:flex;gap:6px;align-items:center;margin-top:8px}.pt button{padding:5px 14px;font-size:13px}.pt .on{background:var(--sel);color:var(--selt);border-color:var(--sel)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ctr{text-align:center}
 .cks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.cks label{display:flex;flex-direction:column;align-items:center;gap:4px;margin:0;font-size:13px;color:var(--tx);text-align:center}.cks input{width:22px;height:22px}
 .q{width:24px;height:24px;padding:0;border-radius:6px;font-size:14px;line-height:1;color:var(--mu);display:inline-grid;place-items:center;flex:none}
 .hq,.qr{display:flex;align-items:center;justify-content:space-between;gap:10px}.hq.ctr{justify-content:center}.hq.sub{margin:12px 0 6px;font-size:14px;color:var(--mu)}
-.seg{display:flex;gap:8px}.seg button{flex:1;padding:10px 6px;font-size:14px}.seg .on{background:var(--tx);color:var(--bg);border-color:var(--tx)}.seg.s4{margin:8px 0}.seg.s4 button{font-size:13px;padding:10px 2px}
+.seg{display:flex;gap:8px}.seg button{flex:1;padding:10px 6px;font-size:14px}.seg .on{background:var(--sel);color:var(--selt);border-color:var(--sel)}.seg.s4{margin:8px 0}.seg.s4 button{font-size:13px;padding:10px 2px}
 .tgs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.tgs .tg{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0;font-size:13px;color:var(--tx);position:relative}
 .tg input{position:absolute;opacity:0;width:44px;height:24px;margin:0;top:20px}.tg i{width:44px;height:24px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);position:relative}
 .tg i:after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--mu)}
-.tg input:checked+i{background:var(--tx);border-color:var(--tx)}.tg input:checked+i:after{left:22px;background:var(--bg)}
+.tg input:checked+i{background:var(--sel);border-color:var(--sel)}.tg input:checked+i:after{left:22px;background:var(--selt)}
 .dy{padding:10px 0;border-top:1px solid var(--bd)}.dy:first-child{border:0}.dy .g,.dy .r{font-weight:700;margin-inline-end:10px}
 [hidden]{display:none!important}
 .fc{display:inline-block;vertical-align:middle;margin-inline-start:8px}#pgv{height:280px}
@@ -66,7 +66,7 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <p class="mu small" id="h_dd" hidden>Each day shows how many of the closed paper trades made a profit and how many made a loss, and the money result. Days follow your phone clock. Only the last 500 closed trades of each chart are counted. With a server, All adds the four charts together.</p>
 <div class="seg s4" id="ddf"></div><div id="ddb"></div>
 <button onclick="this.closest('dialog').close()">Close</button></dialog>
-<dialog id="dl"><h3 class="ctr hq">Custom setup<button type="button" class="q" data-q="h_cs1,h_cs2" aria-label="Help">?</button></h3>
+<dialog id="dl"><div class="xb"><button type="button" aria-label="Close" onclick="this.closest('dialog').close()">✕</button></div><div class="db"><h3 class="ctr hq">Custom setup<button type="button" class="q" data-q="h_cs1,h_cs2" aria-label="Help">?</button></h3>
 <div class="g2"><label>Account balance (USD)<input id="bal" type="number" inputmode="decimal"></label>
 <label>Risk per trade (%)<input id="risk" type="number" inputmode="decimal"></label></div>
 <div id="cts" class="g2"></div>
@@ -81,21 +81,21 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <h3 class="hq">Market slots<button type="button" class="q" data-q="h_ms" aria-label="Help">?</button></h3>
 <div id="sls" class="g2"></div>
 <p class="mu small" id="h_ms" hidden>Each slot shows one market. Choose a different market for a slot to change it.</p>
-<h3 class="hq">Bot on/off<button type="button" class="q" data-q="h_on" aria-label="Help">?</button></h3>
-<div id="sws" class="tgs"></div>
-<p class="mu small" id="h_on" hidden>One switch for each chart. Off means the bot opens no new paper trades and sends no alerts on that chart. Trades already open still close on their stop-loss or target. With a server, tap Save to send this to your server.</p>
 <h3 class="hq">Notifications<button type="button" class="q" data-q="h_nt" aria-label="Help">?</button></h3>
 <div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
 <div class="mu small">Only for these markets:</div><div id="nms" class="seg s4"></div>
 <div class="mu small">Only for these timeframes:</div><div id="ntfs" class="seg s4"></div>
 <p class="mu small" id="h_nt" hidden>With a server address saved, these choices are sent to your server when you tap Save.</p>
 <h3 class="hq">Paper market<button type="button" class="q" data-q="h_pm" aria-label="Help">?</button></h3>
-<div class="g2"><label>Paper starting balance (USD)<input id="pbal" type="number" inputmode="decimal"></label>
+<div class="g2"><label>Paper starting balance<input id="pbal" type="number" inputmode="decimal"></label>
 <label>Paper risk per trade (%)<input id="prisk" type="number" inputmode="decimal"></label></div>
 <div class="hq sub"><span>Paper bot strategy</span><button type="button" class="q" data-q="h_st" aria-label="Help">?</button></div>
 <div class="seg" id="stseg" data-v="candle"><button type="button" data-st="ind">Indicators</button><button type="button" data-st="candle">Candlestick</button><button type="button" data-st="both">Both</button></div>
 <p class="mu small" id="h_st" hidden>Indicators: the old score from the trend, momentum and other indicators. Candlestick: only confirmed candlestick patterns. Both: the bot follows a confirmed candlestick pattern, and the indicators when there is none. The paper bot, your alerts and the past results use this strategy. The Buy, Sell or Wait at the top and "Why the bot says this" always show the indicators. Candlestick calls are rare, because a pattern needs a key level and a confirmation candle.</p>
 <div class="ck"><input type="checkbox" id="pg"><span>Show the candle chart</span></div>
+<div class="hq sub"><span>Bot on/off</span><button type="button" class="q" data-q="h_on" aria-label="Help">?</button></div>
+<div id="sws" class="tgs"></div>
+<p class="mu small" id="h_on" hidden>One switch for each chart. Off means the bot opens no new paper trades and sends no alerts on that chart. Trades already open still close on their stop-loss or target. With a server, tap Save to send this to your server.</p>
 <p class="mu small" id="h_pm" hidden>Risk applies to new paper trades. A new balance starts when you reset the paper account. Paper trades use the unit sizes above. With a server, fill in your server password and tap Save to send these to your server.</p>
 <h3 class="hq">Server (optional)<button type="button" class="q" data-q="h_sv1,h_sv2" aria-label="Help">?</button></h3>
 <label>Server address<input id="su" type="text" placeholder="https://my-bot-server.yourname.workers.dev"></label>
@@ -108,7 +108,7 @@ dialog h3:first-child{border:0;margin-top:0;padding-top:0}
 <h3 class="hq">Language<button type="button" class="q" data-q="h_lg" aria-label="Help">?</button></h3>
 <label>Choose language<select id="lg"><option value="en">English</option><option value="ar">العربية (السعودية)</option></select></label>
 <p class="mu small" id="h_lg" hidden>Changing the language reloads the app.</p>
-<button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></dialog>
+<button id="sv">Save</button> <button onclick="this.closest('dialog').close()">Cancel</button></div></dialog>
 <p class="mu small">Not financial advice. The bot follows fixed rules and can be wrong. Never risk money you cannot afford to lose.</p>
 <script>
 const $=s=>document.querySelector(s),ls=(k,v)=>{try{return v===undefined?localStorage.getItem(k):localStorage.setItem(k,v)}catch(e){return null}};
@@ -158,7 +158,7 @@ const AD={
 'Market slots':'خانات الأسواق','Each slot shows one market.':'كل خانة تعرض سوقًا واحدًا.','Choose a different market for a slot to change it.':'اختر سوقًا مختلفًا للخانة لتغييره.',
 'Notifications':'الإشعارات','Notify me when the bot says Buy or Sell':'أبلغني عندما يقول الروبوت شراء أو بيع','Only for these markets:':'فقط لهذه الأسواق:','Only for these timeframes:':'فقط لهذه الأطر الزمنية:',
 'With a server address saved, these choices are sent to your server when you tap Save.':'عند حفظ عنوان الخادم، تُرسل هذه الخيارات إلى خادمك عند الضغط على حفظ.',
-'Paper market':'السوق التجريبي','Paper starting balance (USD)':'الرصيد الابتدائي التجريبي (دولار)','Paper risk per trade (%)':'مخاطرة الصفقة التجريبية (%)','Show the candle chart':'إظهار رسم الشموع',
+'Paper market':'السوق التجريبي','Paper starting balance':'الرصيد الابتدائي التجريبي','Paper risk per trade (%)':'مخاطرة الصفقة التجريبية (%)','Show the candle chart':'إظهار رسم الشموع',
 'Risk applies to new paper trades.':'تُطبَّق المخاطرة على الصفقات التجريبية الجديدة.','A new balance starts when you reset the paper account.':'يبدأ الرصيد الجديد عند إعادة ضبط الحساب التجريبي.','Paper trades use the unit sizes above.':'الصفقات التجريبية تستخدم أحجام الوحدات أعلاه.','With a server, fill in your server password and tap Save to send these to your server.':'مع وجود خادم، أدخل كلمة مرور الخادم واضغط حفظ لإرسالها إلى خادمك.',
 'Server (optional)':'الخادم (اختياري)','Server address':'عنوان الخادم','Server password':'كلمة مرور الخادم',
 'With a server address, paper trading and notifications run on your Cloudflare server and the Paper market card shows its results.':'مع وجود عنوان خادم، يعمل التداول التجريبي والإشعارات على خادم Cloudflare الخاص بك وتعرض بطاقة السوق التجريبي نتائجه.',
@@ -530,7 +530,7 @@ const hd=f=>`<div style="display:flex;justify-content:space-between;align-items:
 if(!P){e.innerHTML=hd()+`<div class="mu small">${srvErr?'Could not reach the server: '+srvErr+'. Check the address in Settings, then tap Refresh paper.':'Loading the server results...'}</div>`;trDom(e);drawTr();return}
 const H=P.hist,n=H.length,w=H.filter(z=>z.pnl>0).length,ops=Object.keys(P.open),sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
 const fl=ops.reduce((q,k)=>{const o=P.open[k],ct=+(((SV?srv.ct:cfg().ct)||{})[k])||MK[k].ct;return q+o.d*(((SV?((srv.px||{})[k]||{}).p:px0[k])||o.e)-o.e)*o.l*ct},0),eq=P.b+fl;
-e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small" id="p_d"${qh('p_d')}>A practice account with pretend money on live prices. ${SV?'Your server trades by itself on all four charts, even when the app is closed, and you can only watch. The buttons choose which chart you see here and which one your laptop bot copies.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="mu small">Paper bot strategy: ${stOf()}</div><div class="pt"><span class="mu small">Trades on</span>${TFS.map(t=>`<button data-pt="${t}" class="${pt()===t?'on':''}">${t}</button>`).join('')}</div><div class="mu small" style="margin-top:8px">Bot on or off</div>${swHtml('tg')}${SV?srvInfo():''}
+e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small" id="p_d"${qh('p_d')}>A practice account with pretend money on live prices. ${SV?'Your server trades by itself on all four charts, even when the app is closed, and you can only watch. The buttons choose which chart you see here and which one your laptop bot copies.':'The bot trades by itself on the '+ptf()+' chart using your Settings and you can only watch.'}</div><div class="mu small">Paper bot strategy: ${stOf()}</div><div class="pt"><span class="mu small">Trades on</span>${TFS.map(t=>`<button data-pt="${t}" class="${pt()===t?'on':''}">${t}</button>`).join('')}</div>${SV?srvInfo():''}
 <div class="lv"><div><span>Balance</span>$${P.b.toFixed(2)}</div><div><span>Profit or loss</span><b class="${eq>=P.b0?'g':'r'}">${sg(eq-P.b0)}</b></div><div><span>Win rate</span>${n?Math.round(w/n*100):0}%</div><div><span>Loss rate</span>${n?Math.round((n-w)/n*100):0}%</div></div>
 <div class="mu small" style="margin-top:8px">${n} closed trades</div>
 ${ops.length?'<div class="mu small" style="margin-top:8px">Open now</div>'+ops.map(k=>{const o=P.open[k];return `<div class="small">${MK[k].n} ${o.d>0?'Buy':'Sell'} ${o.l.toFixed(2)} lot at ${p(o.e)}</div>`}).join(''):''}
@@ -607,13 +607,11 @@ const M=MK[k],live=x[x.length-1].c,sr=x.src||'',r=analyze(k,x.slice(0,-1),bx&&bx
 const base=+xp[k]||live,C=cfg(),ct=+(C.ct&&C.ct[k])||M.ct,sdist=1.5*r.A,rk=(+C.bal||0)*(+C.risk||0)/100,lots=rk?Math.floor(rk/(sdist*ct)*100)/100:0;
 const lotb=!rk?`<div class="lot"><span>Lot size</span><b>-</b><p class="mu small">Add your balance and risk in Settings.</p></div>`:lots<0.01?`<div class="lot"><span>Lot size</span><b>0.01</b><p class="mu small">Even the smallest lot risks more than your ${C.risk}% limit.</p></div>`:`<div class="lot"><span>Lot size</span><b>${lots.toFixed(2)}</b></div>`;
 const lv1=r.sig==='WAIT'?'':`<div class="lv"><div><span>${xp[k]?'Entry (your Exness price)':'Entry (feed price)'}</span>${p(base)}</div><div><span>Stop-loss, $${p(sdist)} away</span>${p(base-dir*sdist)}</div><div><span>Target 1, $${p(sdist)} away</span>${p(base+dir*sdist)}</div><div><span>Target 2, $${p(2*sdist)} away</span>${p(base+dir*2*sdist)}</div></div>${lotb}`;
-const lv2=r.sig==='WAIT'?'':`<div class="qr" style="margin-top:12px"><span class="mu small">Type your Exness price from MT5 to get exact levels</span><button type="button" class="q" data-q="x_h" aria-label="Help">?</button></div><p class="mu small" id="x_h"${qh('x_h')}>In MT5 this is the ${M.ex} symbol. Exness prices differ slightly from this feed, so place the stop and targets using the distances above from your real entry price.</p><input id="xp" type="number" inputmode="decimal" value="${xp[k]||''}">`;
-const cmb=`<div class="cm"><span>Bot comment</span><p>${comment(r,dir)}</p></div>`;
 const cr=candle(k,x.slice(0,-1),tf),cc={BUY:'g',SELL:'r',WAIT:'y'}[cr.sig],cd=`<div class="card"><b>Candlestick patterns</b><div class="mu small">Paper bot strategy: ${stOf()}</div><div style="font-size:30px;font-weight:800;margin:6px 0" class="${cc}">${cr.sig==='WAIT'?'Wait':cr.sig==='BUY'?'Buy':'Sell'}</div><p>${cr.note}</p>${cr.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'\u2713':z.s<0?'\u2717':'\u2026'}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>`;
 $('#out').innerHTML=`<div class="card"><div class="mu">${M.n} on the ${tf} chart</div><div><b>${p(live)}</b> <span class="mu small">from ${sr}</span></div>
 <div class="row"><div class="sig ${col}">${r.sig==='WAIT'?'Wait':r.sig==='BUY'?'Buy':'Sell'}</div><div class="api" id="api"></div></div>
 <div class="bar"><i class="${col}" style="width:${r.conf}%"></i></div>
-<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv1}${cmb}${lv2}</div>
+<div class="mu small">Strength ${r.conf}%, score ${r.sc>0?'+':''}${r.sc} out of ±${M.max}</div>${M.wk&&closed()?`<p class="y"><b>Exness ${M.ex} is closed for the weekend.</b> Treat this as a preview until it reopens, around Sunday 22:00 UTC.</p>`:''}${lv1}</div>
 ${cd}
 <div class="card"><b>Why the bot says this</b>${r.F.map(z=>`<div class="rs"><span class="ch ${z.s>0?'g':z.s<0?'r':'y'}">${z.s>0?'+':''}${z.s}</span><div><b>${z.n}</b><br><span class="mu">${z.t}</span></div></div>`).join('')}</div>
 ${C.pg===false?'':'<div class="card" id="pgc"><div class="qr"><b>Candle chart</b><button type="button" class="q" data-q="g_l" aria-label="Help">?</button></div><div class="mu small">Last 100 candles</div><canvas id="pgv"></canvas><div class="mu small" id="pgn"></div><div class="mu small" id="pgp"></div><p class="mu small" id="g_l"'+qh('g_l')+'>Shaded bands are candlestick patterns the bot confirmed: green is a Buy pattern, red is a Sell pattern. W is a long wick candle, S is shrinking candles and E is an engulfing candle. Red dashed line is the stop-loss, green dashed line is the target. An up triangle is a Buy, a down triangle is a Sell, and a dot is where the trade closed.</p></div>'}
