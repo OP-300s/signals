@@ -17,7 +17,7 @@ button{font:inherit;color:inherit;background:none;border:1px solid var(--bd);bor
 .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}.tabs button{flex:1 1 28%}
 .tabs .on{background:var(--sel);color:var(--selt);border-color:var(--sel)}
 .sm button{padding:5px 10px;flex:1 1 20%}
-.card{background:var(--cd);border:1px solid var(--bd);border-radius:8px;padding:16px;margin:12px 0}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:0;padding:16px;margin:12px 0}
 .mu{color:var(--mu)}.small{font-size:13px}
 .sig{font-size:64px;font-weight:800;letter-spacing:-2px;line-height:1.05;margin:6px 0}
 .api{text-align:end;font-size:13px;line-height:1.5;color:var(--mu)}
@@ -36,7 +36,7 @@ dialog{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-ra
 dialog label{display:block;margin:10px 0;font-size:14px;color:var(--mu)}
 dialog input:not([type=checkbox]),dialog select,#xp{display:block;width:100%;font:inherit;padding:8px;margin-top:4px;border:1px solid var(--bd);border-radius:5px;background:var(--bg);color:var(--tx)}
 .ck{display:flex;gap:12px;align-items:center;margin:12px 0}.ck input{appearance:none;-webkit-appearance:none;flex:none;width:44px;height:24px;margin:0;border:1px solid var(--bd);border-radius:12px;background:var(--bg);position:relative}.ck input:after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--mu)}.ck input:checked{background:var(--sel);border-color:var(--sel)}.ck input:checked:after{left:22px;background:var(--selt)}
-dialog{max-height:92vh;overflow:auto;overscroll-behavior:contain}dialog::backdrop{background:#000}#dl{padding:0;overflow:hidden;max-height:none;height:calc(100vh - 16px);height:calc(100dvh - 16px)}#dl[open]{display:flex;flex-direction:column}.xb{flex:none;display:flex;justify-content:flex-end;padding:8px 8px 6px;background:var(--cd);position:relative;z-index:2}.db{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 16px 16px}.xb button{width:36px;height:36px;padding:0;font-size:18px;line-height:1;background:var(--cd)}body:has(dialog[open]){overflow:hidden}
+dialog{max-height:92vh;overflow:auto;overscroll-behavior:contain}dialog::backdrop{background:#000}#dl{width:min(560px,calc(100vw - 32px));padding:0;overflow:hidden;max-height:none;height:calc(100vh - 16px);height:calc(100dvh - 16px)}#dl[open]{display:flex;flex-direction:column}.xb{flex:none;display:flex;justify-content:flex-end;padding:8px 8px 6px;background:var(--cd);position:relative;z-index:2}.db{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:0 16px 16px}.xb button{width:36px;height:36px;padding:0;font-size:18px;line-height:1;background:var(--cd)}body:has(dialog[open]){overflow:hidden}
 dialog h3{font-size:16px;margin:18px 0 4px;padding-top:14px;border-top:1px solid var(--bd)}
 dialog h3:first-of-type{border:0;margin-top:0;padding-top:0}
 #mk{display:grid;grid-template-columns:1fr 1fr}#mk button{padding:16px 8px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -54,33 +54,40 @@ dialog h3:first-of-type{border:0;margin-top:0;padding-top:0}
 .tg i:after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--mu)}
 .tg input:checked+i{background:var(--sel);border-color:var(--sel)}.tg input:checked+i:after{left:22px;background:var(--selt)}
 .dy{padding:10px 0;border-top:1px solid var(--bd)}.dy:first-child{border:0}.dy .g,.dy .r{font-weight:700;margin-inline-end:10px}
+.slt{position:relative;background:var(--bg);border:1px solid var(--bd);border-radius:0;padding:8px 10px 12px;min-height:84px;display:flex;flex-direction:column}
+.slt .sn{font-size:13px;font-weight:600;color:var(--tx)}
+.slt .sv{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;text-align:center;flex-wrap:wrap;padding-top:4px}
+.slt .sv svg{width:24px;height:24px;flex:none}
+.slt select{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0}
+.wk{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.wk button{padding:8px 2px;font-size:13px}.wk .on{background:var(--sel);color:var(--selt);border-color:var(--sel)}
+#nms{flex-wrap:wrap}#nms button{flex:1 1 20%}
 [hidden]{display:none!important}
 .fc{display:inline-block;vertical-align:middle;margin-inline-start:8px}#pgv{height:280px}
 </style></head><body>
-<h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="dly">Daily</button><button id="gear">Settings</button></span></h1>
+<h1>My Bot <span class="hb"><button id="rf">Refresh</button><button id="dly">Past results</button><button id="gear">Settings</button></span></h1>
 <div id="bn" class="bn" hidden onclick="this.hidden=true"></div>
 <div class="tabs" id="mk"></div><div class="tabs sm" id="tfs"></div>
 <div id="out"></div>
 <p id="st" class="mu small"></p>
-<dialog id="dd"><h3 class="ctr hq">Daily results<button type="button" class="q" data-q="h_dd" aria-label="Help">?</button></h3>
-<p class="mu small" id="h_dd" hidden>Each day shows how many of the closed paper trades made a profit and how many made a loss, and the money result. Days follow your phone clock. Only the last 500 closed trades of each chart are counted. With a server, All adds the four charts together.</p>
-<div class="seg s4" id="ddf"></div><div id="ddb"></div>
+<dialog id="dd"><h3 class="ctr hq">Past results<button type="button" class="q" data-q="h_dd" aria-label="Help">?</button></h3>
+<p class="mu small" id="h_dd" hidden>Each day shows how many of the closed paper trades made a profit and how many made a loss, and the money result. Tap a weekday to combine all days of that weekday into one result, for example every Friday. Trading history lists every closed trade, newest first. Days follow your phone clock. Only the last 500 closed trades of each chart are counted. With a server, All adds the four charts together.</p>
+<div class="seg s4" id="ddt"></div><div class="seg s4" id="ddf"></div><div class="wk" id="ddw"></div><div id="ddb"></div>
 <button onclick="this.closest('dialog').close()">Close</button></dialog>
-<dialog id="dl"><div class="xb"><button type="button" aria-label="Close" onclick="this.closest('dialog').close()">✕</button></div><div class="db"><h3 class="ctr hq">Custom setup<button type="button" class="q" data-q="h_cs1,h_cs2" aria-label="Help">?</button></h3>
-<div class="g2"><label>Account balance (USD)<input id="bal" type="number" inputmode="decimal"></label>
+<dialog id="dl"><div class="xb"><button type="button" aria-label="Close" onclick="this.closest('dialog').close()">✕</button></div><div class="db"><h3 class="ctr hq">Custom setup<button type="button" class="q" data-q="h_cs1,h_bk,h_cs2" aria-label="Help">?</button></h3>
+<div class="g2"><label>Account balance<input id="bal" type="number" inputmode="decimal"></label>
 <label>Risk per trade (%)<input id="risk" type="number" inputmode="decimal"></label></div>
 <div id="cts" class="g2"></div>
 <label>Gold Twelve Data key<input id="k_XAU" type="text"></label>
 <p class="mu small" id="h_cs1" hidden>Gold uses your Twelve Data key. Silver, Bitcoin and Ethereum use Binance and need no key.</p>
-<details><summary>Backup API (optional)</summary>
-<p class="mu small">Used when Twelve Data fails or hits its limit, before Binance. Paste an API address that returns candles, with your key inside the address. Use a different service, not another Twelve Data account. You can use {tf} for 15m, 30m, 1h or 4h, {tfd} for 15min, 30min, 1h or 4h, {min} for 15, 30, 60 or 240, {limit} for the number of candles, and {from} and {to} for start and end time in seconds.</p>
-<label>Gold backup API address<input id="b_XAU" type="text"></label></details>
+<label>Gold backup API address (optional)<input id="b_XAU" type="text"></label>
+<p class="mu small" id="h_bk" hidden>Used when Twelve Data fails or hits its limit, before Binance. Paste an API address that returns candles, with your key inside the address. Use a different service, not another Twelve Data account. You can use {tf} for 15m, 30m, 1h or 4h, {tfd} for 15min, 30min, 1h or 4h, {min} for 15, 30, 60 or 240, {limit} for the number of candles, and {from} and {to} for start and end time in seconds.</p>
 <div class="g2"><label>API calls per minute<input id="lm" type="number" inputmode="numeric"></label>
 <label>API calls per day<input id="ld" type="number" inputmode="numeric"></label></div>
 <p class="mu small" id="h_cs2" hidden>Check unit sizes in MT5: long-press the symbol, then Specification. Cent accounts use smaller sizes.</p>
 <h3 class="hq">Market slots<button type="button" class="q" data-q="h_ms" aria-label="Help">?</button></h3>
+<div class="mu small">Number of slots</div><div class="seg s4" id="snseg" data-v="4"><button type="button" data-sn="4">4</button><button type="button" data-sn="6">6</button><button type="button" data-sn="8">8</button></div>
 <div id="sls" class="g2"></div>
-<p class="mu small" id="h_ms" hidden>Each slot shows one market. Choose a different market for a slot to change it.</p>
+<p class="mu small" id="h_ms" hidden>Each slot shows one market. Choose a different market for a slot to change it. Only 4 markets exist for now, so extra slots stay empty until more markets are added.</p>
 <h3 class="hq">Notifications<button type="button" class="q" data-q="h_nt" aria-label="Help">?</button></h3>
 <div class="ck"><input type="checkbox" id="nt"><span>Notify me when the bot says Buy or Sell</span></div>
 <div class="mu small">Only for these markets:</div><div id="nms" class="seg s4"></div>
@@ -144,7 +151,7 @@ const AR_ON=cfg().lg==='ar';
 const AD={
 'My Bot':'روبوتي','Refresh':'تحديث','Refreshing...':'جارٍ التحديث...','Updating...':'جارٍ التحديث...','Settings':'الإعدادات','Save':'حفظ','Cancel':'إلغاء',
 'Gold':'الذهب','Silver':'الفضة','Bitcoin':'بيتكوين','Ethereum':'إيثريوم','Buy':'شراء','Sell':'بيع','Wait':'انتظار',
-'Custom setup':'الإعداد المخصص','Account balance (USD)':'رصيد الحساب (دولار)','Risk per trade (%)':'المخاطرة لكل صفقة (%)',
+'Custom setup':'الإعداد المخصص','Account balance':'رصيد الحساب','Risk per trade (%)':'المخاطرة لكل صفقة (%)',
 'Gold Twelve Data key':'مفتاح Twelve Data للذهب','Silver Twelve Data key':'مفتاح Twelve Data للفضة',
 'Gold uses your Twelve Data key.':'الذهب يستخدم مفتاح Twelve Data الخاص بك.','Silver, Bitcoin and Ethereum use Binance and need no key.':'الفضة وبيتكوين وإيثريوم تستخدم Binance ولا تحتاج إلى مفتاح.',
 'Backup API (optional)':'واجهة API احتياطية (اختياري)',
@@ -152,10 +159,10 @@ const AD={
 'Paste an API address that returns candles, with your key inside the address.':'الصق عنوان API يعيد الشموع مع مفتاحك داخل العنوان.',
 'Use a different service, not another Twelve Data account.':'استخدم خدمة مختلفة وليس حساب Twelve Data آخر.',
 'You can use {tf} for 15m, 30m, 1h or 4h, {tfd} for 15min, 30min, 1h or 4h, {min} for 15, 30, 60 or 240, {limit} for the number of candles, and {from} and {to} for start and end time in seconds.':'يمكنك استخدام {tf} للأطر 15m أو 30m أو 1h أو 4h، و{tfd} لـ 15min أو 30min أو 1h أو 4h، و{min} لـ 15 أو 30 أو 60 أو 240، و{limit} لعدد الشموع، و{from} و{to} لوقت البداية والنهاية بالثواني.',
-'Gold backup API address':'عنوان API الاحتياطي للذهب','Silver backup API address':'عنوان API الاحتياطي للفضة',
+'Gold backup API address (optional)':'عنوان API الاحتياطي للذهب (اختياري)','Gold backup API address':'عنوان API الاحتياطي للذهب','Silver backup API address':'عنوان API الاحتياطي للفضة',
 'API calls per minute':'طلبات API في الدقيقة','API calls per day':'طلبات API في اليوم',
 'Check unit sizes in MT5: long-press the symbol, then Specification.':'تحقق من أحجام الوحدات في MT5: اضغط مطولًا على الرمز ثم اختر المواصفات.','Cent accounts use smaller sizes.':'حسابات السنت تستخدم أحجامًا أصغر.',
-'Market slots':'خانات الأسواق','Each slot shows one market.':'كل خانة تعرض سوقًا واحدًا.','Choose a different market for a slot to change it.':'اختر سوقًا مختلفًا للخانة لتغييره.',
+'Market slots':'خانات الأسواق','Number of slots':'عدد الخانات','Empty':'فارغ','Only 4 markets exist for now, so extra slots stay empty until more markets are added.':'توجد 4 أسواق فقط حاليًا، لذا تبقى الخانات الإضافية فارغة حتى تُضاف أسواق أخرى.','Each slot shows one market.':'كل خانة تعرض سوقًا واحدًا.','Choose a different market for a slot to change it.':'اختر سوقًا مختلفًا للخانة لتغييره.',
 'Notifications':'الإشعارات','Notify me when the bot says Buy or Sell':'أبلغني عندما يقول الروبوت شراء أو بيع','Only for these markets:':'فقط لهذه الأسواق:','Only for these timeframes:':'فقط لهذه الأطر الزمنية:',
 'With a server address saved, these choices are sent to your server when you tap Save.':'عند حفظ عنوان الخادم، تُرسل هذه الخيارات إلى خادمك عند الضغط على حفظ.',
 'Paper market':'السوق التجريبي','Paper starting balance':'الرصيد الابتدائي التجريبي','Paper risk per trade (%)':'مخاطرة الصفقة التجريبية (%)','Show the candle chart':'إظهار رسم الشموع',
@@ -239,7 +246,7 @@ const AD={
 'Reset the paper account?':'هل تريد إعادة ضبط الحساب التجريبي؟','Add your server password in Settings first.':'أضف كلمة مرور الخادم في الإعدادات أولًا.',
 'Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.':'الإشعارات محظورة. في Chrome افتح إعدادات الموقع لهذه الصفحة واسمح بالإشعارات.',
 'Add your server password in Settings so your notification and paper settings reach the server.':'أضف كلمة مرور الخادم في الإعدادات كي تصل إعدادات الإشعارات والسوق التجريبي إلى الخادم.',
-'Daily':'يومي','Daily results':'النتائج اليومية','Close':'إغلاق','All':'الكل','Bot on/off':'تشغيل/إيقاف الروبوت','Bot on or off':'تشغيل أو إيقاف الروبوت','No closed paper trades yet.':'لا توجد صفقات تجريبية مغلقة بعد.',
+'Past results':'النتائج السابقة','Paper bot past results':'النتائج السابقة للروبوت التجريبي','All days':'كل الأيام','Days':'الأيام','Closed trades':'الصفقات المغلقة','Days with trades':'أيام فيها صفقات','Average per day':'المتوسط اليومي','Show more':'عرض المزيد','Results':'النتائج','Trading history':'سجل التداول','Trading history lists every closed trade, newest first.':'يعرض سجل التداول كل صفقة مغلقة، الأحدث أولًا.','Tap a weekday to combine all days of that weekday into one result, for example every Friday.':'اضغط على يوم من أيام الأسبوع لدمج كل أيام ذلك اليوم في نتيجة واحدة، مثل كل يوم جمعة.','Close':'إغلاق','All':'الكل','Bot on/off':'تشغيل/إيقاف الروبوت','Bot on or off':'تشغيل أو إيقاف الروبوت','No closed paper trades yet.':'لا توجد صفقات تجريبية مغلقة بعد.',
 'Each day shows how many of the closed paper trades made a profit and how many made a loss, and the money result.':'يعرض كل يوم عدد الصفقات التجريبية المغلقة الرابحة والخاسرة والنتيجة المالية.','Days follow your phone clock.':'الأيام حسب ساعة هاتفك.','Only the last 500 closed trades of each chart are counted.':'تُحتسب فقط آخر 500 صفقة مغلقة لكل فريم.','With a server, All adds the four charts together.':'مع وجود خادم، "الكل" يجمع الفريمات الأربعة.',
 'One switch for each chart.':'مفتاح لكل فريم.','Off means the bot opens no new paper trades and sends no alerts on that chart.':'الإيقاف يعني أن الروبوت لا يفتح صفقات تجريبية جديدة ولا يرسل تنبيهات على هذا الفريم.','Trades already open still close on their stop-loss or target.':'الصفقات المفتوحة تُغلق عند وقف الخسارة أو الهدف.','With a server, tap Save to send this to your server.':'مع وجود خادم، اضغط حفظ لإرسال هذا إلى خادمك.'};
 const PER={'15 minutes':'15 دقيقة','30 minutes':'30 دقيقة','hour':'ساعة','4 hours':'4 ساعات'};
@@ -314,8 +321,13 @@ XAU:'<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="
 XAG:'<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#aab4c0"/><circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1.4"/><text x="12" y="15.5" font-size="9" font-weight="700" text-anchor="middle" fill="#3d4753" font-family="system-ui,sans-serif">Ag</text></svg>',
 BTC:'<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="11" fill="#f7931a"/><path d="M10 4.5v2.2M13.5 4.5v2.2M10 17.3v2.2M13.5 17.3v2.2" stroke="#fff" stroke-width="1.5"/><text x="12" y="16.6" font-size="13" font-weight="800" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif">B</text></svg>',
 ETH:'<svg viewBox="0 0 24 24" width="22" height="22"><polygon points="12,1.5 19.5,12.3 12,16.6 4.5,12.3" fill="#6f86ee"/><polygon points="12,22.5 19.5,13.7 12,18 4.5,13.7" fill="#a2b0f5"/></svg>'};
-const slots=()=>{const a=cfg().sl;return Array.isArray(a)&&a.length===4&&a.every(z=>MK[z])?a:['XAU','XAG','BTC','ETH']};
-function buildMk(){$('#mk').innerHTML=slots().map(k=>`<button data-k="${k}">${IC[k]||''}<span>${MK[k].n}</span></button>`).join('');trDom($('#mk'));sel()}
+const slotsAll=()=>{const a=cfg().sl,d=['XAU','XAG','BTC','ETH','','','',''];
+if(!Array.isArray(a)||a.length<4||a.length>8||a.some(z=>z&&!MK[z])||new Set(a.filter(Boolean)).size!==a.filter(Boolean).length)return d;
+return d.map((z,i)=>i<a.length?a[i]:'')};
+const slotN=()=>{const n=+cfg().sn;return n===6||n===8?n:4};
+const slots=()=>slotsAll().slice(0,slotN());
+const shown=()=>slots().filter(Boolean);
+function buildMk(){$('#mk').innerHTML=shown().map(k=>`<button data-k="${k}">${IC[k]||''}<span>${MK[k].n}</span></button>`).join('');trDom($('#mk'));sel()}
 const FACE={w:['00111100','01111110','11011011','11111111','10111101','11000011','01111110','00111100'],l:['00111100','01111110','11011011','11111111','11000011','10111101','01111110','00111100']};
 const face=win=>{let s='';FACE[win?'w':'l'].forEach((row,y)=>[...row].forEach((c,x)=>{if(c==='1')s+=`<rect x="${x}" y="${y}" width="1" height="1"/>`}));return `<svg class="fc" viewBox="0 0 8 8" width="28" height="28" shape-rendering="crispEdges" style="fill:var(--${win?'g':'r'})" role="img" aria-label="${win?'Happy':'Sad'}">${s}</svg>`};
 const pcache={};
@@ -494,18 +506,29 @@ async function pushOn(){const C=cfg();if(!C.su)return;
 if(!C.sk){$('#bn').textContent=T('Add your server password in Settings first.');$('#bn').hidden=false;return}
 try{const r=await fetch(C.su+'/config?k='+encodeURIComponent(C.sk),{method:'POST',body:JSON.stringify({on:onMap()})});if(!r.ok)throw Error(r.status===403?'wrong server password':'HTTP '+r.status)}
 catch(e){$('#bn').textContent=T('Saved here, but could not send your settings to the server: '+e.message);$('#bn').hidden=false}}
-let dTf='all';
-function showDaily(){const SV=srvOn(),f=$('#ddf'),b=$('#ddb');if(!f)return;let H=[];
-if(SV){if(!srv||!srv.paper){f.innerHTML='';b.innerHTML=`<p class="mu small">${srvErr?'Could not reach the server just now.':'Loading the server results...'}</p>`;trDom(b);return}
-TFS.forEach(t=>{if(dTf==='all'||dTf===t)H=H.concat((srv.paper[t]&&srv.paper[t].hist)||[])})}
-else H=paper().hist||[];
-f.innerHTML=SV?['all',...TFS].map(t=>`<button type="button" data-df="${t}" class="${dTf===t?'on':''}">${t==='all'?'All':t}</button>`).join(''):'';
+let dTf='all',dWd='all',dN=20,dTab='res';
+function showDaily(){const SV=srvOn(),f=$('#ddf'),w=$('#ddw'),b=$('#ddb'),tb=$('#ddt');if(!f)return;let H=[];
+tb.innerHTML=[['res','Results'],['his','Trading history']].map(([v,l])=>`<button type="button" data-dt="${v}" class="${dTab===v?'on':''}">${l}</button>`).join('');trDom(tb);
+if(SV){if(!srv||!srv.paper){f.innerHTML='';w.innerHTML='';b.innerHTML=`<p class="mu small">${srvErr?'Could not reach the server just now.':'Loading the server results...'}</p>`;trDom(b);return}
+TFS.forEach(t=>{if(dTf==='all'||dTf===t)H=H.concat(((srv.paper[t]&&srv.paper[t].hist)||[]).map(z=>({...z,tf:t})))})}
+else{H=paper().hist||[];if(dTf!=='all')H=H.filter(z=>z.tf===dTf)}
+f.innerHTML=['all',...TFS].map(t=>`<button type="button" data-df="${t}" class="${dTf===t?'on':''}">${t==='all'?'All':t}</button>`).join('');
+const loc=AR_ON?'ar':undefined,wdi=d=>(d.getDay()+6)%7;
+w.innerHTML=`<button type="button" data-wd="all" class="${dWd==='all'?'on':''}">All days</button>`+[0,1,2,3,4,5,6].map(i=>`<button type="button" data-wd="${i}" class="${dWd===String(i)?'on':''}">${new Date(2024,0,1+i).toLocaleDateString(loc,{weekday:'short'})}</button>`).join('');
+if(dWd!=='all')H=H.filter(z=>wdi(new Date(z.t))===+dWd);
 const D={};H.forEach(z=>{const d=new Date(z.t),key=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate(),o=D[key]||(D[key]={d,n:0,w:0,s:0});o.n++;if(z.pnl>0)o.w++;o.s+=z.pnl});
-const ks=Object.keys(D).sort((a,c)=>c-a).slice(0,30),loc=AR_ON?'ar':undefined;
-b.innerHTML=ks.length?ks.map(k=>{const o=D[k],w=Math.round(o.w/o.n*100);
-return `<div class="dy"><b>${o.d.toLocaleDateString(loc,{weekday:'long',day:'numeric',month:'short'})}</b><br><span class="g">${w}% profit</span><span class="r">${100-w}% loss</span><br><span class="mu small">${o.n} trade${o.n>1?'s':''}</span> <b class="small ${o.s>=0?'g':'r'}">${o.s>=0?'+':'-'}$${Math.abs(o.s).toFixed(2)}</b></div>`}).join(''):'<p class="mu small">No closed paper trades yet.</p>';
-trDom(f);trDom(b)}
-document.addEventListener('click',e=>{const b=e.target.closest('#ddf button');if(!b)return;dTf=b.dataset.df;showDaily()});
+const ks=Object.keys(D).sort((a,c)=>c-a),n=H.length,wn=H.filter(z=>z.pnl>0).length,sum=H.reduce((q,z)=>q+z.pnl,0),nd=ks.length,sg=v=>(v>=0?'+':'-')+'$'+Math.abs(v).toFixed(2);
+if(!n){b.innerHTML='<p class="mu small">No closed paper trades yet.</p>';trDom(f);trDom(w);trDom(b);return}
+const sm=`<div class="mu small" style="margin-top:12px">Paper bot past results</div><div class="lv"><div><span>Closed trades</span>${n}</div><div><span>Days with trades</span>${nd}</div><div><span>Win rate</span>${Math.round(wn/n*100)}%</div><div><span>Loss rate</span>${Math.round((n-wn)/n*100)}%</div><div><span>Profit or loss</span><b class="${sum>=0?'g':'r'}">${sg(sum)}</b></div><div><span>Average per day</span><b class="${sum>=0?'g':'r'}">${sg(sum/nd)}</b></div></div>`;
+const dl=`<div class="mu small" style="margin-top:14px">Days</div>`+ks.slice(0,30).map(k=>{const o=D[k],pw=Math.round(o.w/o.n*100);
+return `<div class="dy"><b>${o.d.toLocaleDateString(loc,{weekday:'long',day:'numeric',month:'short'})}</b><br><span class="g">${pw}% profit</span><span class="r">${100-pw}% loss</span><br><span class="mu small">${o.n} trade${o.n>1?'s':''}</span> <b class="small ${o.s>=0?'g':'r'}">${sg(o.s)}</b></div>`}).join('');
+const HS=H.slice().sort((a,c)=>c.t-a.t),vis=HS.slice(0,dN);
+const hl=vis.map(z=>`<div class="small dy"><span class="mu">${new Date(z.t).toLocaleString(loc,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${z.tf?' \u00b7 '+z.tf:''}</span><br>${MK[z.k].n} ${z.d>0?'Buy':'Sell'} ${z.l.toFixed(2)} lot: <b class="${z.pnl>0?'g':'r'}">${sg(z.pnl)}</b> (${z.why})</div>`).join('')+(HS.length>dN?'<button type="button" id="ddm" class="small" style="margin-top:8px">Show more</button>':'');
+b.innerHTML=dTab==='his'?hl:sm+dl;trDom(f);trDom(w);trDom(b)}
+document.addEventListener('click',e=>{const b=e.target.closest('#ddf button');if(!b)return;dTf=b.dataset.df;dN=20;showDaily()});
+document.addEventListener('click',e=>{const b=e.target.closest('#ddt button');if(!b)return;dTab=b.dataset.dt;dN=20;showDaily()});
+document.addEventListener('click',e=>{const b=e.target.closest('#ddw button');if(!b)return;dWd=b.dataset.wd;dN=20;showDaily()});
+document.addEventListener('click',e=>{if(!e.target.closest('#ddm'))return;dN+=20;showDaily()});
 document.addEventListener('change',async e=>{const z=e.target,t=z.dataset&&z.dataset.tg;if(!t)return;
 const o=onMap();o[t]=z.checked;ls('cfg',JSON.stringify({...cfg(),on:o}));
 if(srvOn()){await pushOn();await loadSrv()}showPaper()});
@@ -514,7 +537,7 @@ const pt=()=>srvOn()&&srv&&srv.ptf?srv.ptf:ptf();
 const paper=()=>{try{const q=JSON.parse(ls('paper')||'null');if(q)return q}catch(e){}const b=+cfg().pbal||10000;return{b0:b,b,open:{},hist:[]}};
 function paperStep(k,x,r,fresh){
 const P=paper(),ct=+((cfg().ct||{})[k])||MK[k].ct,px=x[x.length-1].c;px0[k]=px;let pos=P.open[k];
-const close=(price,why,tt)=>{const pnl=pos.d*(price-pos.e)*pos.l*ct-px*0.0003*pos.l*ct;P.b+=pnl;P.hist.push({k,d:pos.d,e:pos.e,x:price,l:pos.l,pnl,why,t:tt||Date.now(),et:pos.t,s:pos.s,g:pos.g});delete P.open[k];pos=null};
+const close=(price,why,tt)=>{const pnl=pos.d*(price-pos.e)*pos.l*ct-px*0.0003*pos.l*ct;P.b+=pnl;P.hist.push({k,d:pos.d,e:pos.e,x:price,l:pos.l,pnl,why,t:tt||Date.now(),et:pos.t,s:pos.s,g:pos.g,tf:ptf()});delete P.open[k];pos=null};
 if(pos){
 for(const c of x){if((c.t||0)<=pos.t)continue;
 if(pos.d>0?c.l<=pos.s:c.h>=pos.s){close(pos.s,'stop-loss hit',c.t);break}
@@ -534,7 +557,6 @@ e.innerHTML=hd(n?face(H[n-1].pnl>0):'')+`<div class="mu small" id="p_d"${qh('p_d
 <div class="lv"><div><span>Balance</span>$${P.b.toFixed(2)}</div><div><span>Profit or loss</span><b class="${eq>=P.b0?'g':'r'}">${sg(eq-P.b0)}</b></div><div><span>Win rate</span>${n?Math.round(w/n*100):0}%</div><div><span>Loss rate</span>${n?Math.round((n-w)/n*100):0}%</div></div>
 <div class="mu small" style="margin-top:8px">${n} closed trades</div>
 ${ops.length?'<div class="mu small" style="margin-top:8px">Open now</div>'+ops.map(k=>{const o=P.open[k];return `<div class="small">${MK[k].n} ${o.d>0?'Buy':'Sell'} ${o.l.toFixed(2)} lot at ${p(o.e)}</div>`}).join(''):''}
-${n?'<div class="mu small" style="margin-top:8px">History</div>'+H.slice(-10).reverse().map(z=>`<div class="small">${MK[z.k].n} ${z.d>0?'Buy':'Sell'} ${z.l.toFixed(2)} lot: <b class="${z.pnl>0?'g':'r'}">${sg(z.pnl)}</b> (${z.why})</div>`).join(''):''}
 <button id="pr" class="small" style="margin-top:10px">Reset paper account</button>`;trDom(e);drawTr()}
 function comment(r,dir){
 const S=r.F.filter(z=>z.s*dir>0).sort((a,b)=>Math.abs(b.s)-Math.abs(a.s)),O=r.F.filter(z=>z.s*dir<0);
@@ -630,34 +652,39 @@ $('#tfs').innerHTML=TFS.map(t=>`<button data-t="${t}">${t}</button>`).join('');
 $('#cts').innerHTML=Object.keys(MK).map(k=>`<label>${MK[k].ex} units per 1.00 lot<input id="c_${k}" type="number" inputmode="decimal"></label>`).join('');
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!(b.dataset.k||b.dataset.t))return;if(b.dataset.k)cur=b.dataset.k;if(b.dataset.t)tf=b.dataset.t;sel();$('#out').innerHTML='';load()});
 document.addEventListener('change',e=>{if(e.target.id==='xp'&&last){xp[cur]=+e.target.value||0;render(...last)}});
+const MC={XAU:'color:#e0a542',XAG:'color:#aab4c0',BTC:'color:#f7931a',ETH:'background:linear-gradient(90deg,#4a5f9a,#7a9cf0);-webkit-background-clip:text;background-clip:text;color:transparent'};
+const slView=k=>k?`<span class="sic">${IC[k]||''}</span><b style="${MC[k]||''}">${MK[k].n}</b>`:'<b class="mu">Empty</b>';
+const setSn=n=>{$('#snseg').dataset.v=n;document.querySelectorAll('#snseg button').forEach(z=>z.classList.toggle('on',+z.dataset.sn===+n));document.querySelectorAll('.slt').forEach(z=>z.hidden=+z.dataset.ti>=n)};
+document.addEventListener('click',e=>{const b=e.target.closest('#snseg button');if(b)setSn(b.dataset.sn)});
 function buildSel(){
-$('#sls').innerHTML=slots().map((k,i)=>`<label>Slot ${i+1}<select data-sl="${i}" data-prev="${k}">${Object.keys(MK).map(z=>`<option value="${z}"${z===k?' selected':''}>${MK[z].n}</option>`).join('')}</select></label>`).join('');
-$('#nms').innerHTML=slots().map(k=>`<button type="button" data-nm="${k}">${MK[k].n}</button>`).join('');
+$('#sls').innerHTML=slotsAll().map((k,i)=>`<div class="slt" data-ti="${i}"><span class="sn">Slot ${i+1}</span><span class="sv">${slView(k)}</span><select data-sl="${i}" data-prev="${k}" aria-label="Slot ${i+1}"><option value=""${k?'':' selected'}>Empty</option>${Object.keys(MK).map(z=>`<option value="${z}"${z===k?' selected':''}>${MK[z].n}</option>`).join('')}</select></div>`).join('');
+setSn(slotN());
+$('#nms').innerHTML=shown().map(k=>`<button type="button" data-nm="${k}">${MK[k].n}</button>`).join('');
 $('#ntfs').innerHTML=TFS.map(t=>`<button type="button" data-nt="${t}">${t}</button>`).join('')}
 document.addEventListener('click',e=>{const b=e.target.closest('#nms button,#ntfs button');if(b)b.classList.toggle('on')});
 const nbOn=(a,v,d)=>{const b=$('[data-'+a+'="'+v+'"]');return b?b.classList.contains('on'):d};
-document.addEventListener('change',e=>{const z=e.target;if(!z.dataset||z.dataset.sl===undefined)return;const old=z.dataset.prev;document.querySelectorAll('[data-sl]').forEach(o=>{if(o!==z&&o.value===z.value){o.value=old;o.dataset.prev=old}});z.dataset.prev=z.value});
+document.addEventListener('change',e=>{const z=e.target;if(!z.dataset||z.dataset.sl===undefined)return;const old=z.dataset.prev;document.querySelectorAll('[data-sl]').forEach(o=>{if(o!==z&&z.value&&o.value===z.value){o.value=old;o.dataset.prev=old}});z.dataset.prev=z.value;document.querySelectorAll('[data-sl]').forEach(o=>{o.parentNode.querySelector('.sv').innerHTML=slView(o.value)});trDom($('#sls'))});
 matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{applyTheme();if(last)render(...last)});
 document.addEventListener('toggle',e=>{if(e.target.closest&&e.target.closest('#out'))dOpen=e.target.open},true);
 $('#rf').onclick=()=>{tdOff={};load()};
-$('#dly').onclick=async()=>{dTf='all';if(srvOn())await loadSrv();showDaily();trDom($('#dd'));$('#dd').showModal()};
+$('#dly').onclick=async()=>{dTf='all';dWd='all';dN=20;dTab='res';if(srvOn())await loadSrv();showDaily();trDom($('#dd'));$('#dd').showModal()};
 document.addEventListener('click',async e=>{const b=e.target;if(b.id!=='pf'||b.disabled)return;b.disabled=true;b.textContent=T('Refreshing...');try{if(srvOn())await loadSrv();else await Promise.all(Object.keys(MK).map(k=>check(k,ptf(),300).catch(()=>{})))}catch(x){}showPaper()});
 document.addEventListener('click',async e=>{const b=e.target.closest('button[data-pt]');if(!b)return;ls('ptf',b.dataset.pt);if(srvOn()){await pushSrv();await loadSrv()}showPaper();drawTr()});
 document.addEventListener('click',async e=>{if(e.target.id!=='pr'||!confirm(T('Reset the paper account?')))return;
 if(srvOn()){const C=cfg();if(!C.sk){alert(T('Add your server password in Settings first.'));return}
 try{await jget(C.su+'/reset?tf='+pt()+'&k='+encodeURIComponent(C.sk));await loadSrv()}catch(x){alert('Could not reset: '+x.message+(x.message==='HTTP 403'?' (wrong server password)':''))}}
 else ls('paper','');showPaper()});
-$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};buildSel();$('#sws').innerHTML=swIn('sw');$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#k_XAU').value=tdKey('XAU');$('#su').value=C.su||'';$('#sk').value=C.sk||'';$('#live').checked=!!C.live;$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#pbal').value=C.pbal||10000;$('#prisk').value=C.prisk||1;$('#pg').checked=C.pg!==false;setSeg(C.st==='ind'||C.st==='both'?C.st:'candle');$('#nt').checked=!!C.nt;slots().forEach(k=>$('[data-nm="'+k+'"]').classList.toggle('on',nOn(k)));$('#thm').value=C.th||'dark';$('#lg').value=C.lg||'en';TFS.forEach(t=>$('[data-nt="'+t+'"]').classList.toggle('on',nTf(t)));trDom($('#dl'));$('#dl').showModal()};
-$('#sv').onclick=async()=>{const lg=$('#lg').value,oldLg=cfg().lg||'en';
-ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,su:(u=>u&&!/^https?:\/\//.test(u)?'https://'+u:u)($('#su').value.trim().replace(/\/+$/,'')),sk:$('#sk').value.trim(),live:$('#live').checked,bk:{XAU:$('#b_XAU').value.trim()},th:$('#thm').value,lg,pbal:+$('#pbal').value||10000,prisk:+$('#prisk').value||1,pg:$('#pg').checked,st:$('#stseg').dataset.v,sl:[...document.querySelectorAll('[data-sl]')].map(z=>z.value),on:Object.fromEntries(TFS.map(t=>[t,$('[data-sw="'+t+'"]').checked])),ntf:TFS.filter(t=>nbOn('nt',t,true)),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,nbOn('nm',k,nOn(k))])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim()}));
+$('#gear').onclick=()=>{const C=cfg(),c=C.ct||{};buildSel();$('#sws').innerHTML=swIn('sw');$('#bal').value=C.bal||'';$('#risk').value=C.risk||1;Object.keys(MK).forEach(k=>$('#c_'+k).value=c[k]||MK[k].ct);$('#b_XAU').value=(C.bk||{}).XAU||'';$('#k_XAU').value=tdKey('XAU');$('#su').value=C.su||'';$('#sk').value=C.sk||'';$('#live').checked=!!C.live;$('#lm').value=C.lm||8;$('#ld').value=C.ld||800;$('#pbal').value=C.pbal||10000;$('#prisk').value=C.prisk||1;$('#pg').checked=C.pg!==false;setSeg(C.st==='ind'||C.st==='both'?C.st:'candle');$('#nt').checked=!!C.nt;shown().forEach(k=>$('[data-nm="'+k+'"]').classList.toggle('on',nOn(k)));$('#thm').value=C.th||'dark';$('#lg').value=C.lg||'en';TFS.forEach(t=>$('[data-nt="'+t+'"]').classList.toggle('on',nTf(t)));trDom($('#dl'));$('#dl').showModal()};
+$('#sv').onclick=async()=>{const lg=$('#lg').value,oldLg=cfg().lg||'en';const SN=+$('#snseg').dataset.v||4;let SL=[...document.querySelectorAll('[data-sl]')].map(z=>z.value);if(!SL.slice(0,SN).some(Boolean))SL=['XAU','XAG','BTC','ETH','','','',''];
+ls('cfg',JSON.stringify({bal:+$('#bal').value||0,risk:+$('#risk').value||1,nt:$('#nt').checked,lm:+$('#lm').value||8,ld:+$('#ld').value||800,su:(u=>u&&!/^https?:\/\//.test(u)?'https://'+u:u)($('#su').value.trim().replace(/\/+$/,'')),sk:$('#sk').value.trim(),live:$('#live').checked,bk:{XAU:$('#b_XAU').value.trim()},th:$('#thm').value,lg,pbal:+$('#pbal').value||10000,prisk:+$('#prisk').value||1,pg:$('#pg').checked,st:$('#stseg').dataset.v,sl:SL,sn:SN,on:Object.fromEntries(TFS.map(t=>[t,$('[data-sw="'+t+'"]').checked])),ntf:TFS.filter(t=>nbOn('nt',t,true)),nm:Object.fromEntries(Object.keys(MK).map(k=>[k,nbOn('nm',k,nOn(k))])),ct:Object.fromEntries(Object.keys(MK).map(k=>[k,+$('#c_'+k).value||MK[k].ct]))}));ls('tdkeys',JSON.stringify({XAU:$('#k_XAU').value.trim()}));
 if($('#nt').checked&&window.Notification&&Notification.permission==='default')await Notification.requestPermission();
 if($('#nt').checked&&(!window.Notification||Notification.permission==='denied')){$('#bn').textContent=T('Notifications are blocked. In Chrome, open Site settings for this page and allow Notifications.');$('#bn').hidden=false}
 await pushSrv();
 $('#dl').close();applyTheme();tdOff={};
 if(lg!==oldLg){location.reload();return}
-if(!slots().includes(cur))cur=slots()[0];buildMk();load();scanAll()};
+if(!shown().includes(cur))cur=shown()[0];buildMk();load();scanAll()};
 setInterval(showApi,1000);
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 setInterval(scanAll,18e4);
-applyTheme();if(!slots().includes(cur))cur=slots()[0];buildMk();trDom(document.body);load();scanAll();
+applyTheme();if(!shown().includes(cur))cur=shown()[0];buildMk();trDom(document.body);load();scanAll();
 </script></body></html>
